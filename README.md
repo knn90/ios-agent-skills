@@ -27,12 +27,24 @@ ios-project-init ──→ ios-profile.md (+ Docs/ tree)        # run ONCE per p
 | `ios-cook` | **yes** | The only implementer. plan → code → verify → review gates. |
 | `ios-code-review` | no | 3-stage adversarial review; delegates to specialist skills if present. |
 
+## Layout
+
+```
+ios-agent-skills/
+├── README.md
+├── ios-profile.template.md      # copy into each consuming project's .claude/ as ios-profile.md
+└── ios-skills/                  # the skills — every child folder is one skill
+    ├── ios-project-init/SKILL.md
+    └── ios-{scout,research,brainstorm,sequential-thinking,plan,cook,code-review}/SKILL.md
+```
+
 ## Setup
 
 1. Copy `ios-profile.template.md` → `<project>/.claude/ios-profile.md` and fill it in,
    **or** run `ios-project-init` to generate it interactively.
-2. Install the skills where Claude Code can see them (project `.claude/skills/`,
-   `~/.claude/skills/`, or as a plugin).
+2. Make the skills discoverable to Claude Code — copy or symlink the skill folders from
+   `ios-skills/` into a project's `.claude/skills/`, into `~/.claude/skills/`, or package
+   them as a plugin.
 3. (Optional) Install specialist plugins for deeper review and list them under
    `specialists:` in the profile:
    - `swiftui-expert` — SwiftUI view/state/perf review
