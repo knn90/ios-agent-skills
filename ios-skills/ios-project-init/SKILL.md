@@ -1,6 +1,6 @@
 ---
 name: ios-project-init
-description: "One-time bootstrap for the ios-* skill suite. Creates .claude/ios-profile.md — the single source of project-specific facts every other ios-* skill reads. Greenfield repos → prescriptive (decide conventions up front). Existing apps → descriptive (detect + record). Use before first running ios-scout/plan/cook/code-review on a project, or when the profile is missing/stale."
+description: "One-time bootstrap for the ios-* skill suite. Creates .claude/ios-profile.md — the single source of project-specific facts every other ios-* skill reads. Greenfield repos → prescriptive (decide conventions up front). Existing apps → descriptive (detect + record). Use before first running ios-scout/plan/execute/code-review/resolve on a project, or when the profile is missing/stale."
 argument-hint: "[--greenfield | --detect]"
 ---
 
@@ -53,6 +53,8 @@ Read the codebase, fill the profile from evidence. **Verify every value — neve
 | `rules_file` | `CLAUDE.md` else `Docs/Architecture.md` else none |
 | `ticket_system`/`ticket_pattern` | branch names + `git log` (e.g. `ABC-123`), or ask |
 | `high_rigor_domains` | grep for `Checkout`/`Payment`/`Auth`/`Profile`; default `[auth, PII]` if none |
+| `default_base_branch` | `git symbolic-ref refs/remotes/origin/HEAD` (repo default), else `main` |
+| `pr_tool` | `gh` if the GitHub CLI is installed + authed, else `none` |
 
 Use `Explore`/`Grep`/`Glob` (or invoke `ios-scout` if the repo is large). Confirm the
 detected `architecture`, `verify_command`, and `high_rigor_domains` with the user before
@@ -102,9 +104,10 @@ Write `.claude/ios-profile.md` from `ios-profile.template.md`, filled in. Then:
 - Specialists available: <list or none>
 
 Next: the ios-* skills are now live for this project.
-- Find code        → ios-scout
-- Plan a feature   → ios-plan
-- Implement        → ios-cook
+- Find code            → ios-scout
+- Plan a feature       → ios-plan
+- Implement            → ios-execute
+- Resolve end-to-end   → ios-resolve <ticket | "description">  (scout→plan→execute→review→PR)
 ```
 
 ## Greenfield follow-through

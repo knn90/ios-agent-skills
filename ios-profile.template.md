@@ -36,6 +36,10 @@ ticket_system:            # Jira | GitHub | Linear | none
 ticket_pattern:           # regex, e.g. ALFMOB-\d+  (used to detect a ticket id in args/branch)
 ticket_fetch:             # MCP tool or CLI to fetch a ticket | none
 
+# ── Workflow / PR (used by ios-resolve + ios-execute --team) ───
+default_base_branch: main # branch-from point + PR target; overridable with --base
+pr_tool:                  # gh | none   (none → ios-resolve prints manual PR steps)
+
 # ── Verification ───────────────────────────────────────────────
 # Whatever this project actually runs to prove a change is correct.
 # Free-form: xcodebuild test, fastlane test, swift test, make test, ./scripts/foo.sh …
