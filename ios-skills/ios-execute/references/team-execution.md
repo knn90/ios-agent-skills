@@ -40,6 +40,8 @@ Never edit anything under {generated_paths}. Money = Decimal, never Double. No P
 
 First action in your worktree:  git checkout -b {SLUG}/{AGENT_NAME} {BASE}
 Work ONLY on the files assigned to you (your rows in the plan's File Changes table).
+TDD always: write a failing test BEFORE the code for every unit of behavior you own
+(RED → GREEN → REFACTOR). No implementation without a test that fails without it.
 Commit with /commit (one concern per commit). Do NOT push.
 Before reporting done: make your worktree COMPILE (build it) so the integrate gate isn't
 tripped by typos. (The full {verify_command} test gate runs once at integrate, not per dev.)
@@ -64,6 +66,10 @@ For `N == 2`, fold dev-3's column into dev-2.
 > interfaces* from `plan.md`, in a separate worktree — so they may not compile until the
 > integrate merge. That's by design: they become the integrate gate's first signal. dev-1
 > must name types/signatures **exactly** as the plan specifies so they link after merge.
+>
+> **TDD is universal, not just dev-1's job:** dev-1 leads tests for the planned interfaces;
+> impl devs (dev-2/dev-3) still write a failing test first for any unit they add that dev-1's
+> tests don't cover. Nobody ships untested logic.
 
 ---
 

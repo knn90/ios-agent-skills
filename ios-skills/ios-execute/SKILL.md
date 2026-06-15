@@ -1,6 +1,6 @@
 ---
 name: ios-execute
-description: "ALWAYS activate before implementing ANY feature, plan, or fix in an iOS project. The only implementer. Enforces plan-first, verify-before-claim (runs the project's verify_command), and a mandatory code-review gate. Solo by default; --team N spawns parallel dev agents in isolated worktrees with peer review + merge. Heightened rigor for high_rigor_domains (checkout/auth/payment/PII). Reads .claude/ios-profile.md."
+description: "ALWAYS activate before implementing ANY feature, plan, or fix in an iOS project. The only implementer. Enforces plan-first, test-first (TDD always), verify-before-claim (runs the project's verify_command), and a mandatory code-review gate. Solo by default; --team N spawns parallel dev agents in isolated worktrees with peer review + merge. Heightened rigor for high_rigor_domains (checkout/auth/payment/PII). Reads .claude/ios-profile.md."
 argument-hint: "[task | plan-path | TICKET-ID] [--fast | --auto | --no-test | --team N | --solo]"
 ---
 
@@ -54,7 +54,7 @@ Exceptions:
 - **TICKET-ID** → `ticket_fetch` → matching plan, else `ios-plan TICKET-ID`.
 - **Free-form** → interactive.
 - **Flags:** `--fast` (scout→micro-plan→code), `--auto` (auto-approve gates, sparingly),
-  `--no-test` (skip test step — explicit override only; record in report),
+  `--no-test` (skip the final verify *run* only — you'll run it yourself; TDD still drives the code; record in report),
   `--team N` (parallel dev team in worktrees — see Phase 3), `--solo` (force single-agent),
   `--devs N` (alias for `--team N`).
 
@@ -68,7 +68,7 @@ If no args, ask via `AskUserQuestion` (what to implement + mode).
 2. Resolve plan (load OR ios-plan creates OR --fast micro-plan)
 3. Plan Review Gate — user approval (skip only with --auto)
 4. Domain rigor flag — touches high_rigor_domains? → HIGH-RIGOR
-5. Implementation — solo (direct edits / one subagent) OR --team N (worktree dev team)
+5. Implementation — test-first (TDD); solo (direct edits / one subagent) OR --team N (worktree dev team)
 6. Verification — {verify_command} (MANDATORY)
 7. Code Review — ios-code-review --pending (MANDATORY)
 8. Finalise — update plan status, ask before commit
@@ -106,6 +106,14 @@ phases, test strategy (UI accessibility ids?), feature flag, HIGH-RIGOR flag.
 `references/team-execution.md`** (spawn → context → build → peer review → merge → validate);
 it reuses the same profile + discipline below. The discipline applies to **every** path —
 your own edits *and* the dev agents' work.
+
+**Test-First (TDD) — always.** Drive every unit of behavior with a test:
+**RED** (write a failing test) → **GREEN** (minimum code to make it pass) → **REFACTOR** (tidy,
+tests stay green). Never write implementation before a test that fails without it. This holds in
+**solo and team** mode, **greenfield and existing** code (greenfield: the first test also
+establishes the test pattern). The only exemptions are pure non-logic changes — copy, assets,
+config, formatting — and you must say so in the report. If a change is hard to test, that's a
+design signal: fix the seam (inject the dependency, split the type), don't skip the test.
 
 **Discipline (enforce `rules_file` + profile conventions while editing):**
 - **State** — use `{state_type}`. No ad-hoc one-off enums when a shared type exists.
@@ -184,6 +192,7 @@ and a real `verify_command` exist, full rigor resumes.
 
 ## Constraints
 - **DO NOT** start coding without an approved plan. **DO NOT** auto-commit/push without approval.
+- **DO NOT** write implementation before a failing test (TDD) — except pure non-logic changes (state which).
 - **DO NOT** skip the verify gate (Phase 4) or the review gate (Phase 5).
 - **DO NOT** edit `generated_paths`. **MUST** follow `rules_file`.
 - **Correctness for money** — `Decimal` only in `high_rigor_domains`. **No PII in logs.**
