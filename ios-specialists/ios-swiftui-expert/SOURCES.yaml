@@ -1,0 +1,85 @@
+# Provenance + curation for the ios-swiftui-expert skill.
+# Maintained by ios-skill-consolidate — do not hand-edit pinned_commit / last_synced.
+
+skill: ios-swiftui-expert
+domain: SwiftUI
+last_consolidated: 2026-06-15
+
+discovery:
+  enabled: true
+  queries:                     # seeds for the discovery step (current year appended at run time)
+    - "SwiftUI agent skill"
+    - "SwiftUI best practices"
+    - "awesome SwiftUI"
+    - "SwiftUI architecture guidelines"
+  authority_anchors:           # always weighted top for currency
+    - "Apple Developer documentation — SwiftUI"
+    - "WWDC sessions — SwiftUI"
+    - "Apple Human Interface Guidelines"
+
+sources:
+  # ── PRIMARY / SOURCE OF TRUTH: Apple is the top authority; wins on any conflict ──
+  - name: Apple — official SwiftUI guidance (incl. Apple's own SwiftUI Specialist Skill)
+    url: https://developer.apple.com/documentation/swiftui
+    also:
+      - https://developer.apple.com/videos/play/wwdc2026/269/   # WWDC26 s269 "What's new in SwiftUI" (verified)
+      - https://developer.apple.com/design/human-interface-guidelines
+    export_apple_skill: "xcrun agent skills export"   # Xcode 27+ — exports Apple's SwiftUI Specialist Skill as markdown
+    path: .
+    status: active
+    primary: true              # ranked first; the authoritative source of truth
+    consulted_version:         # record iOS/Xcode version consulted (not a git SHA)
+    last_synced:               # NOT yet fetched — requires Xcode 27 (consolidating Mac is on 26.4)
+    license: "Apple — reference / learn-from only; never vendor verbatim"
+    note: >
+      VERIFIED 2026-06-15 via WWDC 2026 session 269 ("What's new in SwiftUI"): Apple ships a "SwiftUI
+      Specialist Skill" (+ a "What's New In SwiftUI Skill") with Xcode 27, usable in the Coding
+      Assistant and exportable as markdown via `xcrun agent skills export`. THIS is the ideal primary
+      input — export and fold it in. Not yet fetched here (needs Xcode 27). Caveats: exact skill slug
+      names unverified (Apple uses prose names); confirmed via the session transcript, not a docs page.
+
+  # ── Community sources (all MIT, all active as of 2026-06-15) ──
+  - name: twostraws/SwiftUI-Agent-Skill          # "swiftui-pro", Paul Hudson
+    url: https://github.com/twostraws/SwiftUI-Agent-Skill
+    path: swiftui-pro/
+    status: active
+    pinned_commit: be297ff80ddd
+    last_synced: 2026-06-15
+    license: MIT
+
+  - name: arjitj2/swiftui-design-principles      # design/visual-polish lens (+ WidgetKit)
+    url: https://github.com/arjitj2/swiftui-design-principles
+    path: .
+    status: active
+    pinned_commit: 791d22d73f84
+    last_synced: 2026-06-15
+    license: MIT
+
+  - name: Dimillian/Skills                        # swiftui-* skills only, Thomas Ricouard
+    url: https://github.com/Dimillian/Skills
+    path: [swiftui-liquid-glass/, swiftui-performance-audit/, swiftui-ui-patterns/, swiftui-view-refactor/]
+    status: active
+    pinned_commit: 05ba982bfeb0
+    last_synced: 2026-06-15
+    license: MIT
+
+  - name: AvdLee/SwiftUI-Agent-Skill              # "swiftui-expert-skill", Antoine van der Lee
+    url: https://github.com/AvdLee/SwiftUI-Agent-Skill
+    path: swiftui-expert-skill/
+    status: active
+    pinned_commit: 224e7641e722
+    last_synced: 2026-06-15
+    license: MIT
+
+# ── Verification RESOLVED 2026-06-15 (background check) ──
+# CONFIRMED via official Apple source — WWDC 2026 session 269 "What's new in SwiftUI"
+# (https://developer.apple.com/videos/play/wwdc2026/269/): Apple ships a "SwiftUI Specialist Skill"
+# and a "What's New In SwiftUI Skill" with Xcode 27, exportable via `xcrun agent skills export`.
+# Folded into the PRIMARY Apple source above. Still requires Xcode 27 to export (this Mac: 26.4).
+# Caveats: exact slug names unverified; the specific iOS-27 API changes were NOT part of this check
+# and remain excluded until separately verified.
+
+# ── Evaluated by discovery, NOT added ──
+# - dpearson2699/swift-ios-skills (745*) — PolyForm Perimeter license (no rebrand/resell): mine for gaps only.
+# - conorluddy/LiquidGlassReference (306*, deepest Liquid Glass) — NO stated license → read-only reference.
+# - 199-biotechnologies/swiftui-claude-skills (MIT, ~6*) — "known LLM-mistakes" cross-check; verify claims.
