@@ -15,7 +15,7 @@ The generalized `ios-skills/` suite already covers most of the flow. Every skill
 |---|---|---|
 | Scout | `ios-scout` | a *map* (paths:line) — parallel Explore agents |
 | Plan | `ios-plan` | `plan.md` + per-phase files under `plans_dir`, approval-aware |
-| Implement + verify | `ios-execute` | code; plan-first gate → `verify_command` → review; **solo only today** |
+| Implement | `ios-execute` | code; plan-first → verify → review gates; **solo only today** |
 | Review | `ios-code-review` | 3-stage adversarial review + verdict |
 | Research / ideate / reason | `ios-research`, `ios-brainstorm`, `ios-sequential-thinking` | reports / reasoning |
 | Bootstrap | `ios-project-init` | the `ios-profile.md` itself |
