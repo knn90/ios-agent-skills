@@ -1,6 +1,6 @@
 ---
 name: ios-plan
-description: "Create detailed, phased implementation plans for an iOS project. Use for feature planning, refactors, ticket resolution. Outputs a phased plan to the project's plans dir. Does NOT implement — hands off to ios-cook. Reads .claude/ios-profile.md. Subcommands: archive, red-team, validate."
+description: "Create detailed, phased implementation plans for an iOS project. Use for feature planning, refactors, ticket resolution. Outputs a phased plan to the project's plans dir. Does NOT implement — hands off to ios-execute. Reads .claude/ios-profile.md. Subcommands: archive, red-team, validate."
 argument-hint: "[task | TICKET-ID | archive | red-team | validate]"
 ---
 
@@ -72,7 +72,7 @@ cross-module / `high_rigor_domains`→`--hard`; real uncertainty between 2 appro
 8. Write plan.md + per-phase files under {plans_dir}
 9. (optional) Red team → red-team.md
 10. (optional) Validate interview → validation.md
-11. Output cook handoff (do NOT auto-invoke)
+11. Output execute handoff (do NOT auto-invoke)
 ```
 
 ## Phase 1 — Context
@@ -115,6 +115,7 @@ Dir: `{plans_dir}/{YYMMDD-HHMM}-{TICKET|slug}/` — `{YYMMDD-HHMM}` from
 title: <short title>
 ticket: <id | n/a>
 status: pending            # pending | in-progress | completed | cancelled
+complexity: MEDIUM         # LOW | MEDIUM | HIGH — drives team dev-count (LOW=solo·MEDIUM=2·HIGH=3)
 mode: auto                 # auto | fast | hard | two
 blockedBy: []
 blocks: []
@@ -128,7 +129,8 @@ created: <YYYY-MM-DD>
 ## Acceptance Criteria
 ## Approach            <chosen + rationale; link brainstorm report if any>
 ## Phases              1. Foundation 2. Data 3. UI 4. Tests
-## File Changes (Summary Table)  | File | Module | Type | Change |
+## File Changes (Summary Table)  | File | Module | Type | Change | Owner |
+       # Owner = dev-1/dev-2/dev-3 for team runs (one owner per file → clean merges); "-" for solo
 ## Feature Flag        Name / Default off / Rollout  (or "n/a" if feature_flags==none)
 ## Testing Strategy    Unit / Snapshot / UI (accessibility ids needed)
 ## Risks & Mitigations | Risk | Likelihood | Mitigation |
@@ -161,13 +163,14 @@ Save to `{plans_dir}/{plan-dir}/red-team.md`; update the plan before proceeding.
 confirmed with PM? backend schema timing confirmed? design signed off? localization strings
 provided? accessibility ids reviewed? QA bandwidth? Save to `validation.md`.
 
-## Phase 8 — Cook handoff (do NOT auto-invoke)
+## Phase 8 — Execute handoff (do NOT auto-invoke)
 ```
 Plan ready: {plans_dir}/{plan-dir}/plan.md
-- Implement now            → ios-cook {plans_dir}/{plan-dir}/plan.md
+- Implement now            → ios-execute {plans_dir}/{plan-dir}/plan.md
 - Adversarial review first → ios-plan red-team <plan-dir>
 - Validate with team       → ios-plan validate <plan-dir>
 ```
+(When `ios-resolve` drives the flow, it runs this handoff for you.)
 
 ## Subcommands
 - **archive** — move `status: completed|cancelled` plans → `{plans_dir}/_archive/{YYMM}/`, append journal.
@@ -179,7 +182,7 @@ First 1-2 features have no prior art — the plan **establishes** the pattern. R
 (they become what later plans DRY against).
 
 ## Constraints
-- **DO NOT** implement — plans only. **DO NOT** auto-invoke `ios-cook`.
+- **DO NOT** implement — plans only. **DO NOT** auto-invoke `ios-execute`.
 - **DO NOT** create plans outside `{plans_dir}`. **MUST** follow `rules_file`.
 - **MUST** include `{verify_command}` in each phase's Verification (or note build-only).
 - **Sacrifice grammar for concision.**

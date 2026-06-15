@@ -33,8 +33,12 @@ accessibility_ids:        # module/convention name | none
 feature_flags:            # Firebase-RemoteConfig | LaunchDarkly | none
 crash_reporting:          # Crashlytics | Sentry | none
 ticket_system:            # Jira | GitHub | Linear | none
-ticket_pattern:           # regex, e.g. ALFMOB-\d+  (used to detect a ticket id in args/branch)
+ticket_pattern:           # regex, e.g. ABC-\d+  (used to detect a ticket id in args/branch)
 ticket_fetch:             # MCP tool or CLI to fetch a ticket | none
+
+# ── Workflow / PR (used by ios-resolve + ios-execute --team) ───
+default_base_branch: main # branch-from point + PR target; overridable with --base
+pr_tool:                  # gh | none   (none → ios-resolve prints manual PR steps)
 
 # ── Verification ───────────────────────────────────────────────
 # Whatever this project actually runs to prove a change is correct.

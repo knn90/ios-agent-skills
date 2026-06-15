@@ -1,6 +1,6 @@
 # ios-* skill suite
 
-A project-agnostic iOS engineering workflow, generalized from the Alfie-iOS skills.
+A project-agnostic iOS engineering workflow.
 All project-specific facts live in **one** file — `.claude/ios-profile.md` — and every
 skill reads it at runtime. The skill bodies themselves contain no hardcoded app names,
 paths, architectures, or commands.
@@ -10,8 +10,10 @@ ios-project-init ──→ ios-profile.md (+ Docs/ tree)        # run ONCE per p
         │
         ├─ ios-scout ────────┐
         ├─ ios-research ──────┤
-        ├─ ios-brainstorm ────┼─→ ios-plan ─→ ios-cook ─→ ios-code-review
+        ├─ ios-brainstorm ────┼─→ ios-plan ─→ ios-execute ─→ ios-code-review
         └─ ios-sequential-thinking  (reasoning aid; plugs in anywhere)
+
+ios-resolve ── one command: ticket/context → scout → plan → execute (solo|team) → review → PR
 ```
 
 ## Skills
@@ -19,12 +21,13 @@ ios-project-init ──→ ios-profile.md (+ Docs/ tree)        # run ONCE per p
 | Skill | Implements code? | Purpose |
 |---|---|---|
 | `ios-project-init` | sets up | One-time bootstrap. Greenfield → prescriptive profile; existing app → detect & record. |
+| `ios-resolve` | orchestrates | **The front door.** Ticket/context → scout → plan → execute → review → PR. Chains the others; never implements directly. |
 | `ios-scout` | no | Fast parallel code discovery. |
 | `ios-research` | no | Sourced technical research grounded in the codebase. |
 | `ios-brainstorm` | no | Brutally honest trade-off analysis. |
 | `ios-sequential-thinking` | no | Step-by-step reasoning with revision/branching. |
 | `ios-plan` | no | Phased implementation plan. |
-| `ios-cook` | **yes** | The only implementer. plan → code → verify → review gates. |
+| `ios-execute` | **yes** | The only implementer. plan → code → verify → review gates. Solo, or `--team N` (parallel worktree devs + peer review + merge). |
 | `ios-code-review` | no | 3-stage adversarial review; delegates to specialist skills if present. |
 
 ## Layout
@@ -35,7 +38,8 @@ ios-agent-skills/
 ├── ios-profile.template.md      # copy into each consuming project's .claude/ as ios-profile.md
 └── ios-skills/                  # the skills — every child folder is one skill
     ├── ios-project-init/SKILL.md
-    └── ios-{scout,research,brainstorm,sequential-thinking,plan,cook,code-review}/SKILL.md
+    └── ios-{scout,research,brainstorm,sequential-thinking,plan,execute,code-review,resolve}/SKILL.md
+        # ios-execute/references/team-execution.md — the parallel team engine (loaded for --team)
 ```
 
 ## Setup
@@ -61,7 +65,7 @@ ios-agent-skills/
 ## Core principles (shared by every skill)
 
 - **YAGNI + KISS + DRY.** Minimum code that solves the problem.
-- **Plan-first.** No implementation code before an approved plan (hard gate in `ios-cook`).
+- **Plan-first.** No implementation code before an approved plan (hard gate in `ios-execute`).
 - **Verify before claiming.** Run `verify_command`; read the output; *then* claim done.
   Empty `verify_command` → build-only, stated explicitly.
 - **HIGH-RIGOR escalation.** Diffs touching `high_rigor_domains` get mandatory
