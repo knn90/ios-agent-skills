@@ -1,0 +1,70 @@
+# Provenance + curation for the ios-concurrency-expert skill.
+# Maintained by ios-skill-consolidate — do not hand-edit pinned_commit / last_synced.
+
+skill: ios-concurrency-expert
+domain: Swift Concurrency
+last_consolidated: 2026-06-15
+
+discovery:
+  enabled: true
+  queries:                     # seeds for the discovery step (current year appended at run time)
+    - "Swift concurrency agent skill"
+    - "Swift 6 concurrency best practices"
+    - "Swift actors Sendable data race"
+    - "approachable concurrency Swift 6.2"
+  authority_anchors:           # always weighted top for currency (this is a *language* feature)
+    - "Swift.org — The Swift Programming Language: Concurrency"
+    - "Swift.org — Swift 6 Concurrency Migration Guide"
+    - "Swift Evolution proposals (swiftlang/swift-evolution)"
+    - "WWDC concurrency sessions"
+
+sources:
+  # ── PRIMARY / SOURCE OF TRUTH: Swift.org — concurrency is a language feature ──
+  - name: Swift.org — official Swift Concurrency guidance
+    url: https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/
+    also:
+      - https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/
+      - https://github.com/swiftlang/swift-evolution/tree/main/proposals   # SE-0296/0298/0300/0302/0304/0306/0311/0316/0414/0461/0466
+      - https://www.swift.org/blog/swift-6.2-released/
+    path: .
+    status: active
+    primary: true              # ranked first; the authoritative source of truth
+    consulted_version: "Swift 6.2 / Xcode 26 era"
+    last_synced: 2026-06-15
+    license: "Swift.org / Apache-2.0 (SE proposals) — reference; cite, write original guidance"
+    note: >
+      Semantics verified against the SE proposals directly (numbers in `also`). The migration-guide
+      DocC pages are JS-rendered and don't extract via fetch — the SE proposals are the normative
+      source they summarize. NO Apple *concurrency* agent skill exists as of WWDC 2026 (the Platforms
+      State of the Union lists SwiftUI/accessibility/sizing/testing/performance specialists — not
+      concurrency); revisit if Apple ships one.
+
+  # ── Community sources (all MIT, all active as of 2026-06-15; Swift 6.2-current) ──
+  - name: AvdLee/Swift-Concurrency-Agent-Skill   # SwiftLee — broadest reference set
+    url: https://github.com/AvdLee/Swift-Concurrency-Agent-Skill
+    path: swift-concurrency/                      # SKILL.md + references/
+    status: active
+    pinned_commit: 0d472de78225
+    last_synced: 2026-06-15
+    license: MIT
+
+  - name: twostraws/Swift-Concurrency-Agent-Skill  # "swift-concurrency-pro", Paul Hudson — LLM-mistake focus
+    url: https://github.com/twostraws/Swift-Concurrency-Agent-Skill
+    path: swift-concurrency-pro/
+    status: active
+    pinned_commit: bee3f69ba171
+    last_synced: 2026-06-15
+    license: MIT
+
+  - name: Dimillian/Skills                          # swift-concurrency-expert, Thomas Ricouard — review/remediation
+    url: https://github.com/Dimillian/Skills
+    path: swift-concurrency-expert/
+    status: active
+    pinned_commit: 05ba982bfeb0
+    last_synced: 2026-06-15
+    license: MIT
+
+# ── Notes ──
+# Discovery surfaced no other maintained, non-SEO Swift-concurrency skill worth adding.
+# All three community sources are current to Swift 6.2 "Approachable Concurrency"
+# (default @MainActor isolation SE-0466, nonisolated-async-on-caller SE-0461, region-based isolation SE-0414).
