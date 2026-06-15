@@ -3,7 +3,7 @@
 **Status:** v1 BUILT (2026-06-15) — decisions locked (see §6)
 **Goal:** One entry point that takes a *ticket or free-form context* and drives it end-to-end:
 **scout → plan → implement (parallel team) → test → review → PR**, project-agnostic (profile-driven).
-**Decision taken:** generalized suite (`ios-skills/`) + port Archive 3's team-execution engine.
+**Decision taken:** generalized suite (`ios-skills/`) + port a proven team-execution engine from a prior project-specific suite.
 
 ---
 
@@ -20,13 +20,13 @@ The generalized `ios-skills/` suite already covers most of the flow. Every skill
 | Research / ideate / reason | `ios-research`, `ios-brainstorm`, `ios-sequential-thinking` | reports / reasoning |
 | Bootstrap | `ios-project-init` | the `ios-profile.md` itself |
 
-**Archive 3 reference** (project-specific, NOT reused directly): `ios-resolve-ticket` is the proven end-to-end chain; `task-init/scope/plan/execute` is the proven engine. We port their *logic*, generalized.
+**Source reference** (a prior project-specific suite, NOT reused directly): it had a proven end-to-end ticket→PR chain and a parallel `init → scope → plan → execute` team engine. We port the *logic*, generalized.
 
 ---
 
 ## 2. The gap (what we build)
 
-1. **No orchestrator** chaining ticket → scout → plan → execute → review → PR. *(equivalent of `ios-resolve-ticket`, generalized.)*
+1. **No orchestrator** chaining ticket → scout → plan → execute → review → PR.
 2. **`ios-execute` implements solo** — no parallel team engine (worktree dev agents + peer review + merge + validation gate).
 
 So we build **two things**: an orchestrator, and a team-execution mode for the implementer.
@@ -73,7 +73,7 @@ The implementer is **renamed `ios-execute` → `ios-execute`** and gains a team 
 | medium (1 feature, 5+ files) | one delegated subagent (today) |
 | **large / parallelizable** | **`--team N`: N dev agents in isolated worktrees + peer review + merge + validation** (new) |
 
-The team protocol is large, so it lives in **`ios-execute/references/team-execution.md`** (loaded only for `--team` runs), keeping the main SKILL.md readable. Protocol (generalized from `task-execute`):
+The team protocol is large, so it lives in **`ios-execute/references/team-execution.md`** (loaded only for `--team` runs), keeping the main SKILL.md readable. Protocol:
 
 ```
 Phase A SPAWN   — N Agent(isolation:"worktree"), dev-1..N (parallel, single message)
@@ -94,17 +94,17 @@ Role table (generalized; modes = feature / deprecation / flag-removal):
 
 ### 3.3 Profile changes — **minimal** (push back on over-spec)
 
-A sweep of the engine found ~20 hardcoded exchange-app facts. **Almost all are already covered** in the generalized model — adding fields for them would violate the suite's "facts that vary, nothing else" rule.
+A sweep of the source engine found ~20 hardcoded project-specific facts. **Almost all are already covered** in the generalized model — adding fields for them would violate the suite's "facts that vary, nothing else" rule.
 
-| Exchange-app hardcode | Generalized source — **no new field** |
+| Source-project hardcode (example) | Generalized source — **no new field** |
 |---|---|
-| `xcodebuild ... -scheme Exchange ... -destination 'iPhone 16' \| xcpretty` (build + test gates) | **`verify_command`** (already the single source of truth) |
-| `XDS`, `XLogger`, `Assembly`, `ViewModelType/Input/Output`, `Bugsnag`, RxSwift/Combine | **`rules_file`** + existing `architecture`/`di`/`networking`/`crash_reporting` + ios-execute & ios-code-review profile-gated checks |
-| `apps/exchange-ios/`, `ExchangeTests/` | **`source_roots`** / **`test_roots`** |
-| `FeatureFlagType`, `FeatureFlagDefaults` | **`feature_flags`** |
-| `.worktrees/`, `.claude/tasks/`, `_status.md`, `dev-N.md`, `ios-dev-N` naming | **engine internals** — hardcode sane defaults, not project facts |
+| `xcodebuild ... -scheme <App> ... -destination '<simulator>'` (build + test gates) | **`verify_command`** (already the single source of truth) |
+| a design-system module, logging wrapper, DI container, view-model base protocol, crash reporter, async framework | **`rules_file`** + existing `architecture`/`di`/`networking`/`crash_reporting` + ios-execute & ios-code-review profile-gated checks |
+| hardcoded source + test directories | **`source_roots`** / **`test_roots`** |
+| a feature-flag enum + defaults type | **`feature_flags`** |
+| `.worktrees/`, `.claude/tasks/`, `_status.md`, `dev-N.md`, `dev-N` naming | **engine internals** — hardcode sane defaults, not project facts |
 | reference check via `rg` + `--type xib/storyboard`; `@objc`/dynamic-dispatch blockers | **universal iOS** — bake into engine, not profile |
-| commit scopes `xios`/`xds` | delegate to `/commit` + note in `rules_file` |
+| project-specific commit scopes | delegate to `/commit` + note in `rules_file` |
 
 **Genuinely new — both OPTIONAL, with safe defaults:**
 
@@ -124,7 +124,7 @@ Testing is woven through, not bolted on:
 3. **Verify gate** — `verify_command` (build + test) must pass; output is read, not assumed. Unset → build-only, stated explicitly.
 4. **Review gate** — `ios-code-review` checks test coverage of changed logic + transition holes.
 
-*Optional future ports (not v1):* `ios-add-test` (runs tests 5× to catch flakiness) and `ios-automation-test-identifier` (QA accessibility ids) from Archive 3 — flag as add-ons if you want deeper test rigor.
+*Optional future ports (not v1):* `ios-add-test` (runs tests 5× to catch flakiness) and `ios-automation-test-identifier` (QA accessibility ids) — flag as add-ons if you want deeper test rigor.
 
 ---
 
@@ -160,7 +160,7 @@ Artifacts under `plans_dir/{slug}/`: `_status.md`, `scope.md`, `plan.md`, `dev-1
 | Phase | Deliverable | Verify |
 |---|---|---|
 | **1. Profile + scaffold** | Add `default_base_branch`, `pr_tool` to `ios-profile.template.md`; create `ios-resolve/` folder; add `ios-execute/references/` | template parses; folders exist |
-| **2. Team engine** | `ios-execute/references/team-execution.md` (spawn→context→build→review→merge→validate, generalized prompts/roles/gates); wire `--team N` + `--solo` flags into `ios-execute` Phase 3 | dry-read: every exchange-app hardcode replaced by a profile ref or documented default |
+| **2. Team engine** | `ios-execute/references/team-execution.md` (spawn→context→build→review→merge→validate, generalized prompts/roles/gates); wire `--team N` + `--solo` flags into `ios-execute` Phase 3 | dry-read: every source-project hardcode replaced by a profile ref or documented default |
 | **3. Orchestrator** | `ios-resolve/SKILL.md` (full pipeline §3.1, gates, ticket fetch, branch logic, PR, report) | walk-through on a sample ticket id + a free-form string (no code run) |
 | **4. Fallbacks** | Handle: no ticket system, `ticket_fetch: none`, `pr_tool: none`, `verify_command` unset, `gh` not authed, merge conflict → BLOCKED | each path prints actionable guidance |
 | **5. Docs** | Update root `README.md` pipeline diagram to include `ios-resolve`; link this design | README shows new entry point |

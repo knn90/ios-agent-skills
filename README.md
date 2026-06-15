@@ -1,6 +1,6 @@
 # ios-* skill suite
 
-A project-agnostic iOS engineering workflow, generalized from the Alfie-iOS skills.
+A project-agnostic iOS engineering workflow.
 All project-specific facts live in **one** file — `.claude/ios-profile.md` — and every
 skill reads it at runtime. The skill bodies themselves contain no hardcoded app names,
 paths, architectures, or commands.
