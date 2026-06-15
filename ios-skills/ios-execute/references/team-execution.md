@@ -56,20 +56,17 @@ them too — but never assume any exist. The profile + `rules_file` are the floo
 
 | MODE | dev-1 | dev-2 | dev-3 (only if N≥3) |
 |---|---|---|---|
-| **feature** | **tests first (TDD)** for the planned types | core implementation | integration / DI wiring / edge cases |
+| **feature** | a vertical slice (e.g. view + view-model) **+ its tests** | another slice (e.g. service + networking) **+ its tests** | integration / DI wiring + edge cases **+ its tests** |
 | **deprecation** | remove tests + mocks for target | remove implementation + DI registrations | remove references (imports, XIB/Storyboard, `@objc`/dynamic dispatch) |
 | **flag-removal** | simplify the kept code path | remove the flag + dead code | test cleanup (drop flag-toggling cases) |
 
 For `N == 2`, fold dev-3's column into dev-2.
 
-> **TDD across worktrees (expected friction):** dev-1 writes tests against the *planned
-> interfaces* from `plan.md`, in a separate worktree — so they may not compile until the
-> integrate merge. That's by design: they become the integrate gate's first signal. dev-1
-> must name types/signatures **exactly** as the plan specifies so they link after merge.
->
-> **TDD is universal, not just dev-1's job:** dev-1 leads tests for the planned interfaces;
-> impl devs (dev-2/dev-3) still write a failing test first for any unit they add that dev-1's
-> tests don't cover. Nobody ships untested logic.
+> **Vertical slices + local TDD:** each dev owns a self-contained slice **and its test files**
+> (per the plan's Owner column), so test and code live in the *same* worktree — real
+> RED→GREEN→REFACTOR with local feedback, and the dev runs their slice's tests before reporting
+> done. No dedicated test author; independent edge-case coverage comes from the dedicated
+> reviewer in Phase D below.
 
 ---
 
@@ -96,8 +93,8 @@ worktrees in the repo and persist after the worktree is gone.
 ```
 
 ## Phase C — BUILD
-Monitor via `SendMessage`; resolve blockers; broker interface contracts (dev-1 tests ↔ dev-2
-types). Enforce file ownership. Do **not** merge yet. When every agent reports done (worktree
+Monitor via `SendMessage`; resolve blockers; broker shared interface contracts between slices.
+Enforce file ownership. Do **not** merge yet. When every agent reports done (worktree
 compiles) and has written its `dev-N.md` → peer review.
 
 ## Phase D — PEER REVIEW (branch-based — no paths needed)
@@ -122,6 +119,31 @@ Checklist (same lens as `ios-code-review` Stage 2):
 - [ ] No hardcoded user-facing strings (if `localization` != none); nothing under `{generated_paths}`
 - [ ] Money = `Decimal`; no PII in logs (esp. `high_rigor_domains`)
 - [ ] No commented-out/dead code or debug prints
+
+### Edge-case & logic-gap review (dedicated agent — runs alongside the dev-to-dev reviews)
+
+Because each dev writes their own tests, the independent "what did we miss?" pass lives here.
+In parallel with the peer reviews, spawn **one read-only `general-purpose` Agent** as an
+adversarial reviewer over the **whole feature** (all slices, not just one). Prompt:
+
+> You are an adversarial edge-case reviewer for an iOS feature. Read `{TASK_DIR}/plan.md` +
+> `scope.md`, then every dev branch's diff: `git diff {BASE}...{SLUG}/dev-N` for N = 1..{N}.
+> Hunt for what the implementers (who wrote their own tests) likely MISSED — *across* slices,
+> not just within one:
+> - unhandled inputs: nil / empty / zero / negative / max / very-large / malformed
+> - error & failure paths, cancellation, timeouts, retries, partial success
+> - state-transition holes (loading → loaded / empty / error), actor reentrancy after `await`
+> - boundary / off-by-one; ordering & race conditions where slices interact
+> - money: rounding, sign, precision (Decimal) — if in `high_rigor_domains`
+> - logic branches with NO test covering them
+> Output per finding: `{ severity, file:line or area, the gap, a concrete failing scenario,
+> the missing test to add, the fix }`. Be brutal; assume the implementers were optimistic.
+> Do NOT repeat the style/convention findings the peer reviewers already cover.
+
+Append findings to `{TASK_DIR}/peer-review.md` under `## Edge cases & logic gaps`. Each
+**blocking** finding routes to the owning dev as a NEEDS CHANGES item — and per TDD, the fix is
+**a failing test first**, then the code. This is the early, pre-merge catch; the post-merge
+`ios-code-review` adversarial pass (in `ios-execute` Phase 5) stays as the final gate.
 
 Verdicts → `{TASK_DIR}/peer-review.md`:
 
@@ -171,6 +193,7 @@ Update `{TASK_DIR}/_status.md`: `Phase: DONE`, `Status: READY`. Report to the ca
 ✓ Team execute complete: {SLUG}
 - Devs: {N}   Mode: {MODE}   Integrate branch: {SLUG}/integrate (built on {BASE})
 - Peer review: APPROVED   Team Lead sign-off: APPROVED
+- Edge-case review: {k} gaps found, {k} resolved (failing test added first, then fix)
 - Verify: ✅ {verify_command} PASSED  (or "build-only — verify_command unset")
 - Reference check: CLEAN   (deprecation/flag-removal only)
 - Files: N   Tests: <n> added/updated   Reports: {TASK_DIR}/dev-1.md … dev-N.md
