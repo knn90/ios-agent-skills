@@ -1,0 +1,71 @@
+# Provenance + curation for the ios-code-review skill.
+# Maintained by ios-skill-consolidate — do not hand-edit pinned_commit / last_synced.
+# NOTE: ios-code-review is a CORE skill (lives in ios-skills/, not ios-specialists/) but is
+# consolidatable — it carries this SOURCES.yaml so the consolidator can refresh its methodology.
+
+skill: ios-code-review
+domain: iOS code review (methodology + Swift / SwiftUI / architecture / testing review)
+last_consolidated: 2026-06-16
+
+discovery:
+  enabled: true
+  queries:
+    - "Swift code review agent skill"
+    - "Swift code review checklist"
+    - "Swift architecture review"
+    - "multi-agent code review swarm"
+  authority_anchors:
+    - "Apple — Swift API Design Guidelines (swift.org)"
+    - "Apple Developer documentation (Swift / SwiftUI / Xcode)"
+    - "the consuming project's rules_file (per .claude/ios-profile.md)"
+
+sources:
+  # ── PRIMARY / SOURCE OF TRUTH ──
+  - name: Apple Swift API Design Guidelines + the project's rules_file
+    url: https://www.swift.org/documentation/api-design-guidelines/
+    also:
+      - https://developer.apple.com/documentation/swift
+    path: .
+    status: active
+    primary: true
+    consulted_version: "Swift 6.x"
+    last_synced: 2026-06-16
+    license: "Apple / Swift.org — reference; the project's rules_file is the per-project authority"
+    note: >
+      Review standards come from Apple's API Design Guidelines + the consuming project's rules_file.
+      Domain depth is DELEGATED to the installed specialist skills (ios-swiftui-expert,
+      ios-concurrency-expert, ios-testing-expert, …) — they are the source of truth for their
+      domains and are triggered per change-type during review (Stage 2.0). Don't duplicate them here.
+
+  # ── Community method sources (all MIT, active as of 2026-06-16) ──
+  - name: Dimillian/Skills — review-swarm          # parallel 4-lens review + precision-filter synthesis
+    url: https://github.com/Dimillian/Skills
+    path: review-swarm/
+    status: active
+    pinned_commit: 05ba982bfeb0
+    last_synced: 2026-06-16
+    license: MIT
+
+  - name: Dimillian/Skills — review-and-simplify-changes   # reuse / quality / efficiency / clarity lens
+    url: https://github.com/Dimillian/Skills
+    path: review-and-simplify-changes/
+    status: active
+    pinned_commit: 05ba982bfeb0
+    last_synced: 2026-06-16
+    license: MIT
+
+  - name: Viniciuscarvalho/swift-code-reviewer-skill   # scope banner, agent-loop feedback, severity SLAs, spec table
+    url: https://github.com/Viniciuscarvalho/swift-code-reviewer-skill
+    path: .
+    status: active
+    pinned_commit: 1d39ce338b11
+    last_synced: 2026-06-16
+    license: MIT
+
+  - name: efremidze/swift-architecture-skill       # architecture-aware review (layering, SSOT, God-VM, anti-patterns)
+    url: https://github.com/efremidze/swift-architecture-skill
+    path: swift-architecture-skill/
+    status: active
+    pinned_commit: ccbc647837ab
+    last_synced: 2026-06-16
+    license: MIT

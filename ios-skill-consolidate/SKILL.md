@@ -1,6 +1,6 @@
 ---
 name: ios-skill-consolidate
-description: "Repo-maintenance skill (NOT shipped to consuming projects). (Re)generates a consolidated specialist skill (e.g. ios-swiftui-expert, ios-concurrency-expert, ios-testing-expert) from its SOURCES.yaml — audits existing sources for staleness, discovers newer/better sources on the web, then fetches, synthesizes, and writes the consolidated SKILL.md. Run with no target to pick from a menu of available skills (or `all`). Use to create or refresh a specialist skill and keep it from going stale."
+description: "Repo-maintenance skill (NOT shipped to consuming projects). (Re)generates a consolidated specialist skill (e.g. ios-swiftui-expert, ios-concurrency-expert, ios-testing-expert, ios-code-review) from its SOURCES.yaml — audits existing sources for staleness, discovers newer/better sources on the web, then fetches, synthesizes, and writes the consolidated SKILL.md. Run with no target to pick from a menu of available skills (or `all`). Use to create or refresh a specialist skill and keep it from going stale."
 argument-hint: "[target-skill | all] [--discover | --no-discover] [--open-pr]"
 ---
 
@@ -14,7 +14,7 @@ new sources and flags dead ones. Output is one consumable `SKILL.md` (+ `referen
 > an app's `.claude/skills/`.
 
 ## Inputs
-- `target-skill` — the specialist to (re)build, e.g. `ios-swiftui-expert`. Its folder must hold a `SOURCES.yaml`. **If omitted, a selection menu is shown (Step 0).** Pass `all` to consolidate every specialist in turn.
+- `target-skill` — the skill to (re)build, e.g. `ios-swiftui-expert` or `ios-code-review`. Its folder must hold a `SOURCES.yaml`. **If omitted, a selection menu is shown (Step 0).** Pass `all` to consolidate every one in turn.
 - `--discover` — run Step 1 (Source Audit & Discovery). Default **on**; the freshness guard.
 - `--no-discover` — skip discovery; just re-pull the current sources (fast refresh).
 - `--open-pr` — finish by opening a PR with the changes instead of leaving them in the tree.
@@ -26,19 +26,21 @@ new sources and flags dead ones. Output is one consumable `SKILL.md` (+ `referen
 
 ### Step 0 — Select target(s)
 - If a `target-skill` arg was given, use it. If `all` was given, select every specialist.
-- **Otherwise, present a menu.** Discover the available specialists by scanning for folders that
-  contain a `SOURCES.yaml` (the specialist skills live under `ios-specialists/`). Ask via
-  `AskUserQuestion` with one numbered option **per skill found**, plus an **"All"** option:
+- **Otherwise, present a menu.** Discover consolidatable skills by scanning for any skill folder
+  that contains a `SOURCES.yaml` — under `ios-specialists/` (the specialist skills) **and**
+  `ios-skills/` (core skills that opt in, e.g. `ios-code-review`). Ask via `AskUserQuestion` with
+  one numbered option **per skill found**, plus an **"All"** option:
   ```
   Which skill do you want to consolidate?
     1. ios-swiftui-expert
     2. ios-concurrency-expert
     3. ios-testing-expert
-    4. …                       (one per ios-specialists/*/ that has a SOURCES.yaml)
+    4. ios-code-review
+    5. …                       (any ios-specialists/*/ or ios-skills/*/ with a SOURCES.yaml)
     n. All
   ```
-  The list is **built dynamically** from what's on disk — dropping in a new
-  `ios-specialists/<name>/` with a `SOURCES.yaml` makes it appear automatically, no edit here.
+  The list is **built dynamically** from what's on disk — dropping a `SOURCES.yaml` into any
+  `ios-specialists/<name>/` or `ios-skills/<name>/` makes it appear automatically, no edit here.
 
 ### Step 0.1 — Load (for the selected target)
 Read `{target}/SKILL.md` + `{target}/SOURCES.yaml` (sources, `domain`, `discovery` config, licenses).
