@@ -1,7 +1,7 @@
 ---
 name: ios-skill-consolidate
-description: "Repo-maintenance skill (NOT shipped to consuming projects). (Re)generates a consolidated specialist skill (e.g. ios-swiftui-expert) from its SOURCES.yaml — audits existing sources for staleness, discovers newer/better sources on the web, then fetches, synthesizes, and writes the consolidated SKILL.md. Use to create or refresh a specialist skill and keep it from going stale."
-argument-hint: "[target-skill] [--discover | --no-discover] [--open-pr]"
+description: "Repo-maintenance skill (NOT shipped to consuming projects). (Re)generates a consolidated specialist skill (e.g. ios-swiftui-expert, ios-concurrency-expert) from its SOURCES.yaml — audits existing sources for staleness, discovers newer/better sources on the web, then fetches, synthesizes, and writes the consolidated SKILL.md. Run with no target to pick from a menu of available skills (or `all`). Use to create or refresh a specialist skill and keep it from going stale."
+argument-hint: "[target-skill | all] [--discover | --no-discover] [--open-pr]"
 ---
 
 # Skill Consolidate — build/refresh a specialist skill from curated + discovered sources
@@ -14,14 +14,32 @@ new sources and flags dead ones. Output is one consumable `SKILL.md` (+ `referen
 > an app's `.claude/skills/`.
 
 ## Inputs
-- `target-skill` — the specialist to (re)build, e.g. `ios-swiftui-expert`. Its folder must hold a `SOURCES.yaml`.
+- `target-skill` — the specialist to (re)build, e.g. `ios-swiftui-expert`. Its folder must hold a `SOURCES.yaml`. **If omitted, a selection menu is shown (Step 0).** Pass `all` to consolidate every specialist in turn.
 - `--discover` — run Step 1 (Source Audit & Discovery). Default **on**; the freshness guard.
 - `--no-discover` — skip discovery; just re-pull the current sources (fast refresh).
 - `--open-pr` — finish by opening a PR with the changes instead of leaving them in the tree.
 
 ## Process
 
-### Step 0 — Load
+> **Runs per selected target.** Step 0 picks the target(s); Steps 1–5 then run **once per target**
+> (for `All`, loop over every specialist).
+
+### Step 0 — Select target(s)
+- If a `target-skill` arg was given, use it. If `all` was given, select every specialist.
+- **Otherwise, present a menu.** Discover the available specialists by scanning for folders that
+  contain a `SOURCES.yaml` (the specialist skills live under `ios-specialists/`). Ask via
+  `AskUserQuestion` with one numbered option **per skill found**, plus an **"All"** option:
+  ```
+  Which skill do you want to consolidate?
+    1. ios-swiftui-expert
+    2. ios-concurrency-expert
+    3. …                       (one per ios-specialists/*/ that has a SOURCES.yaml)
+    n. All
+  ```
+  The list is **built dynamically** from what's on disk — dropping in a new
+  `ios-specialists/<name>/` with a `SOURCES.yaml` makes it appear automatically, no edit here.
+
+### Step 0.1 — Load (for the selected target)
 Read `{target}/SKILL.md` + `{target}/SOURCES.yaml` (sources, `domain`, `discovery` config, licenses).
 
 ### Step 1 — Source Audit & Discovery  ← the freshness guard (skip with `--no-discover`)
@@ -60,7 +78,10 @@ One sub-agent per source → pull its domain guidance as structured notes: *clai
 
 ### Step 4 — Synthesize
 Merge into `{target}/SKILL.md` (overflow detail → `references/`) under the **house style**:
-- **Precedence:** current Apple APIs + the project's `min_ios` first → then most-recently-updated / most-authoritative source.
+- **Precedence — the `primary: true` source wins.** The official source (Apple / Swift.org docs,
+  WWDC, HIG — whichever the skill's `SOURCES.yaml` marks `primary: true`) is the **source of truth**
+  and overrides community sources on any conflict, gated to the project's `min_ios`. Community
+  sources fill in practical patterns and mistake heuristics, not semantics.
 - **Dedupe** overlapping advice; **flag** genuine conflicts in a "Contested" note (don't silently pick).
 - **Organize by topic** (state, composition, layout, performance, navigation, animation, accessibility, testing).
 - **Attribute** each non-obvious recommendation to its source.
@@ -81,6 +102,7 @@ Then **stop for human review**. With `--open-pr`, open a PR; else leave it in th
 Full discovery on the scheduled pass; on-demand refreshes can `--no-discover`.
 
 ## Constraints
+- **Official docs are the source of truth** — the `primary: true` source (Apple / Swift.org) always wins on conflict; community sources never override it.
 - **Human-gates the source set** — discovery proposes, you approve adds/retires.
 - **Licensing first** — verify each source's license before copying; non-permissive → cite, don't vendor.
 - **Reproducible** — pin commits so a re-run is deterministic and upstream changes are diffable.
