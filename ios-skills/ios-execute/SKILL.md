@@ -107,6 +107,11 @@ phases, test strategy (UI accessibility ids?), feature flag, HIGH-RIGOR flag.
 it reuses the same profile + discipline below. The discipline applies to **every** path —
 your own edits *and* the dev agents' work.
 
+**Apply specialists (on by default).** When the code touches a domain with an installed `ios-*-expert`
+skill — SwiftUI → `ios-swiftui-expert`, concurrency → `ios-concurrency-expert`, tests →
+`ios-testing-expert` — **load its `SKILL.md` and follow it** as you write. No profile entry needed; the
+profile's `specialists:` can restrict the set or `none` to disable. (For `--team`, each dev does this for its slice.)
+
 **Test-First (TDD) — always.** Drive every unit of behavior with a test:
 **RED** (write a failing test) → **GREEN** (minimum code to make it pass) → **REFACTOR** (tidy,
 tests stay green). Never write implementation before a test that fails without it. This holds in

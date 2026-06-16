@@ -63,9 +63,11 @@ Flag **scope creep** (unrelated refactors bundled in) and **missing work** (`TOD
 ## Stage 2 — Multi-lens review (run lenses in parallel for non-trivial diffs)
 
 ### 2.0 — Specialist routing (FIRST — this is the point)
-For each domain the diff touches, **if that specialist is in the profile's `specialists:` list**, spawn
-a **read-only `general-purpose` Agent** that loads the specialist's `SKILL.md` and reviews **only its
-slice** of the diff. The general lens (2.1) then skips that domain.
+For each domain the diff touches, route it to the matching specialist below **if that specialist skill
+is installed** in this project — **on by default, no profile entry needed**. Spawn a **read-only
+`general-purpose` Agent** that loads the specialist's `SKILL.md` and reviews **only its slice** of the
+diff; the general lens (2.1) then skips that domain. The profile's `specialists:` is an **optional
+override**: if set, restrict routing to that list; `specialists: none` turns routing off.
 
 | Diff signal | Route to (if installed) | Reviews |
 |---|---|---|
