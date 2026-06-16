@@ -43,7 +43,7 @@ finding is suspect.
 - **Banner:** `Scope: PR #123 · base: main · modified: 7 · tests: 2 · HIGH-RIGOR: yes`.
 - **Adaptive depth:** tiny diff (≤2 files, ≤30 lines, not HIGH-RIGOR) → review locally, skip the parallel fan-out.
 
-**HIGH-RIGOR:** diff touches any `high_rigor_domains` (defaults: checkout/cart, payment/wallet, auth/session, PII/account, money math) → adversarial pass + correctness audit are **mandatory**; log `[HIGH-RIGOR]`.
+**HIGH-RIGOR:** diff touches any domain listed in the profile's `high_rigor_domains` → adversarial pass + correctness audit are **mandatory**; log `[HIGH-RIGOR]`. (The project defines its own domains via the profile; the skill assumes none.)
 
 ---
 
@@ -92,7 +92,7 @@ THREADING & CONCURRENCY (highest-value bugs — unless ios-concurrency-expert ha
 - off-main completion callbacks (URLSession, notifications, Timer) mutating UI without a main hop.
 MEMORY & LIFETIME: retain cycles, unbounded caches, leaked observers/timers, AnyCancellable dropped.
 SECURITY & PRIVACY: token leakage; Keychain (not UserDefaults) for credentials; missing ATS; PII in logs/analytics/{crash_reporting}/print.
-MONEY (if high_rigor_domains): Decimal not Double; rounding; sign (refund vs charge); currency parsing.
+MONEY (if a money/finance domain is configured in high_rigor_domains): Decimal not Double; rounding; sign errors; currency parsing.
 ACCESSIBILITY: VoiceOver labels/order, Dynamic Type, contrast (unless ios-swiftui-expert handled it).
 HYGIENE: comments WHY-only; no dead/commented code; no back-compat shims for code this diff removed.
 
