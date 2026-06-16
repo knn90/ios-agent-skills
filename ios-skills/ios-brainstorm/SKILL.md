@@ -2,6 +2,8 @@
 name: ios-brainstorm
 description: "Brainstorm solutions for an iOS app. Use for ideation, architecture decisions, feasibility checks, feature exploration. Brutally honest about trade-offs and over-engineering. Outputs a decision report. Does NOT implement — hands off to ios-plan. Reads .claude/ios-profile.md."
 argument-hint: "[topic | TICKET-ID | description]"
+model: best
+effort: xhigh
 ---
 
 # Brainstorm — iOS

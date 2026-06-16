@@ -2,6 +2,8 @@
 name: ios-scout
 description: "Fast, token-efficient codebase scouting for an iOS project. Spawns parallel Explore subagents scoped to feature/module folders. Use for file discovery, gathering task context, and locating where a feature lives before edits. Reads .claude/ios-profile.md for repo layout."
 argument-hint: "[search-target] [quick|full]"
+model: best
+effort: xhigh
 ---
 
 # Scout — iOS
