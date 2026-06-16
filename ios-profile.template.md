@@ -50,9 +50,10 @@ verify_command: |
 # Domains that force adversarial review + correctness audit every time.
 high_rigor_domains: [checkout, payment, auth, PII, money]
 
-# ── Specialist review skills (optional) ────────────────────────
-# code-review delegates to these IF installed. Omit any not present.
-specialists: []           # e.g. [swiftui-expert, swift-concurrency, swift-testing-expert, apollo-ios]
+# ── Specialist skills (optional add-ons) ───────────────────────
+# ON BY DEFAULT: any installed ios-*-expert is auto-used — ios-code-review routes to it per change
+# type, ios-execute applies it while writing. This field is an OPTIONAL OVERRIDE.
+specialists:              # unset = auto-use all installed · [ios-swiftui-expert, …] = restrict · none = off
 ---
 
 # Project Notes (free text)

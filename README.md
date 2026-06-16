@@ -1,8 +1,8 @@
 # ios-* skill suite
 
 A **project-agnostic iOS engineering workflow** for Claude Code. Point it at any iOS app, fill in
-**one** file (`.claude/ios-profile.md`), and you get a full **ticket → PR** pipeline plus opt-in
-specialist reviewers. The skill bodies hardcode **no** app names, paths, architectures, or commands —
+**one** file (`.claude/ios-profile.md`), and you get a full **ticket → PR** pipeline plus
+specialist reviewers (used automatically once installed). The skill bodies hardcode **no** app names, paths, architectures, or commands —
 every project-specific fact lives in the profile and is read at runtime.
 
 ```
@@ -16,7 +16,7 @@ ios-resolve  ── one command: ticket/context → scout → plan → execute �
       └─ ios-sequential-thinking  (reasoning aid; plugs in anywhere)
                                           │ apply           │ route
                                           └─── ios-specialists ───┘
-                                  (SwiftUI · Concurrency · Testing — opt-in, Apple-primary)
+                                  (SwiftUI · Concurrency · Testing — Apple-primary)
 ```
 
 ## Setup (once per project)
@@ -28,11 +28,14 @@ ios-resolve  ── one command: ticket/context → scout → plan → execute �
    ```
    (Or into `~/.claude/skills/`, or package as a plugin.) **Don't** ship `ios-skill-consolidate/` — it's repo-maintenance.
 2. **Create the profile** — run **`ios-project-init`**. It *detects* an existing app's architecture/paths, or sets conventions for a greenfield app, and writes `.claude/ios-profile.md`. (Or copy `ios-profile.template.md` and fill it in by hand.)
-3. **(Optional) Turn on specialists** — list the ones you installed under `specialists:` in the profile:
+3. **Specialists work automatically** once installed (step 1) — `ios-code-review` routes change-typed
+   slices to them and `ios-execute` applies them while writing. No extra opt-in. The profile's
+   `specialists:` field is an **optional override**:
    ```yaml
-   specialists: [ios-swiftui-expert, ios-concurrency-expert, ios-testing-expert]
+   # specialists: [ios-swiftui-expert, ios-concurrency-expert]   # restrict to just these
+   # specialists: none                                            # turn specialist routing off
    ```
-   Review and implementation then use them automatically; anything not listed is simply skipped.
+   Leave it unset to auto-use every `ios-*-expert` you installed.
 
 ## How to use it
 
@@ -83,7 +86,7 @@ ios-code-review #42                     # adversarial, multi-lens review of a PR
 | `ios-execute` | **The only implementer.** plan → code → verify → review. **TDD always**; solo, or `--team N` (parallel worktree devs + peer review + a dedicated edge-case reviewer + merge). |
 | `ios-code-review` | Multi-lens adversarial review; **routes change-typed slices to the specialists**; precision-over-recall findings. |
 
-**Specialists — `ios-specialists/` (optional, opt-in)**
+**Specialists — `ios-specialists/` (optional add-ons; auto-used once installed)**
 
 Deep domain reviewers, consolidated from curated community sources with **Apple / official docs as the source of truth**. `ios-code-review` triggers them per change type; `ios-execute` applies them while writing.
 
