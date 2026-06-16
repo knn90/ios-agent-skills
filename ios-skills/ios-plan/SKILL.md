@@ -2,6 +2,8 @@
 name: ios-plan
 description: "Create detailed, phased implementation plans for an iOS project. Use for feature planning, refactors, ticket resolution. Outputs a phased plan to the project's plans dir. Does NOT implement — hands off to ios-execute. Reads .claude/ios-profile.md. Subcommands: archive, red-team, validate."
 argument-hint: "[task | TICKET-ID | archive | red-team | validate]"
+model: best
+effort: max
 ---
 
 # Plan — iOS

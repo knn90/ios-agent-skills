@@ -2,6 +2,8 @@
 name: ios-code-review
 description: "Adversarial, multi-lens code review for an iOS project (Swift / SwiftUI / UIKit). Resolves a precise scope, checks spec compliance, runs a general + architecture + simplification pass, routes change-typed slices to installed specialist skills (ios-swiftui-expert / ios-concurrency-expert / ios-testing-expert / …), then an adversarial red-team, and synthesizes high-confidence findings. Reads .claude/ios-profile.md. Use for PR / commit / pending-diff review."
 argument-hint: "[#PR | COMMIT | --pending | codebase]"
+model: best
+effort: xhigh
 ---
 
 # Code Review — iOS
