@@ -1,221 +1,165 @@
 ---
 name: ios-code-review
-description: "Adversarial code review for an iOS project (Swift / SwiftUI / UIKit). 3-stage protocol: spec compliance → code quality (universal iOS checklist + profile-gated architecture checks) → adversarial red-team. Always-on adversarial + correctness audit for high_rigor_domains. Delegates to specialist skills if installed. Reads .claude/ios-profile.md."
+description: "Adversarial, multi-lens code review for an iOS project (Swift / SwiftUI / UIKit). Resolves a precise scope, checks spec compliance, runs a general + architecture + simplification pass, routes change-typed slices to installed specialist skills (ios-swiftui-expert / ios-concurrency-expert / ios-testing-expert / …), then an adversarial red-team, and synthesizes high-confidence findings. Reads .claude/ios-profile.md. Use for PR / commit / pending-diff review."
 argument-hint: "[#PR | COMMIT | --pending | codebase]"
 ---
 
 # Code Review — iOS
 
-Adversarial review with technical rigor for native iOS Swift code. Every review covers
-spec compliance, code quality, and an adversarial red-team pass.
+Adversarial, profile-driven review for native iOS Swift. **Precision over recall** — a focused list
+of real, high-confidence findings beats a wall of nits.
 
 **Principles:** YAGNI + KISS + DRY. Technical correctness over social comfort. **Honest, brutal, concise.**
 
-## Step 0 — Load profile
+> **Generated/maintained by `ios-skill-consolidate`** — distilled from the repo's prior reviewer +
+> Dimillian/Skills (review-swarm, review-and-simplify-changes), Viniciuscarvalho/swift-code-reviewer-skill,
+> efremidze/swift-architecture-skill (all MIT), with **Apple's Swift API Design Guidelines + the
+> project's `rules_file` as the source of truth**. Last consolidated **2026-06-16**. See `SOURCES.yaml`.
 
-Read `.claude/ios-profile.md`: `architecture`, `state_type`, `di`, `navigation`,
-`networking`, `localization`, `accessibility_ids`, `crash_reporting`, `verify_command`,
-`high_rigor_domains`, `generated_paths`, `specialists`, `rules_file`. If missing → run
-`ios-project-init`.
+## Step 0 — Load profile
+Read `.claude/ios-profile.md`: `architecture`, `state_type`, `di`, `navigation`, `networking`,
+`localization`, `accessibility_ids`, `crash_reporting`, `verify_command`, `high_rigor_domains`,
+`generated_paths`, **`specialists`**, `rules_file`, `test_roots`. Missing → run `ios-project-init`.
 
 ---
 
-## Input Modes (auto-detect; ask via `AskUserQuestion` if ambiguous)
+## Phase 0 — Resolve scope (do this FIRST; everything keys off it)
 
-| Input | Mode | Resolved diff |
+Build ONE canonical `scope` and **print a banner before any finding** — if the scope is wrong, every
+finding is suspect.
+
+| Input | Mode | Diff |
 |---|---|---|
-| `#123` / PR URL | PR | `gh pr diff 123` |
+| `#123` / PR URL | PR | `gh pr diff 123` (base via `gh pr view --json baseRefName`) |
 | `abc1234` (7+ hex) | Commit | `git show <sha>` |
-| `--pending` | Pending | `git diff` (staged + unstaged) |
-| *(no args, recent edits)* | Default | recent edits this session |
+| `--pending` | Pending | `git diff` + `git diff --cached` |
+| *(no args, recent edits)* | Default | files edited this session |
 | `codebase` | Codebase | full scan |
 
-## HIGH-RIGOR detection
-Diff touches any `high_rigor_domains` (default keywords below) → **adversarial review
-mandatory + correctness audit**. Log `[HIGH-RIGOR]` in the report header.
+- **Base-branch fallback:** `gh pr view --json baseRefName` → `git rev-parse origin/HEAD` → `origin/main`|`origin/master`.
+- **Buckets:** `modified` (review in full, all severities) · `tests-for-modified` (coverage → main report) · `related/context` (read for context only) · `deleted` (spec reasoning only).
+- **Exclude always:** `generated_paths`, Pods/Carthage/.build/DerivedData/.swiftpm, `*.generated.swift`/`*.pb.swift`.
+- **Adjacent quarantine:** issues in context-only files go in an "Adjacent observations" section and **do NOT count** toward the verdict.
+- **Banner:** `Scope: PR #123 · base: main · modified: 7 · tests: 2 · HIGH-RIGOR: yes`.
+- **Adaptive depth:** tiny diff (≤2 files, ≤30 lines, not HIGH-RIGOR) → review locally, skip the parallel fan-out.
 
-| Domain | Typical files / patterns |
-|---|---|
-| Checkout / Cart | `Checkout`, `Cart`, `LineItem`, `Total`, `Fee`, `Tax`, `Promo`, `Discount` |
-| Payment / Wallet | `Payment`, `Card`, `Wallet`, `Refund`, `Charge`, `Currency` |
-| Auth | `Login`, `Logout`, `Session`, `Token`, `Biometric`, `Keychain`, `OAuth`, `2FA` |
-| PII / Account | `Profile`, `Address`, `OrderHistory`, `Email`, `Phone`, `KYC` |
-| Money math | `Decimal`, currency formatting/conversion |
-
-(Use the project's actual `high_rigor_domains` list; the above are sensible defaults.)
+**HIGH-RIGOR:** diff touches any `high_rigor_domains` (defaults: checkout/cart, payment/wallet, auth/session, PII/account, money math) → adversarial pass + correctness audit are **mandatory**; log `[HIGH-RIGOR]`.
 
 ---
 
-## Three-Stage Protocol
+## Stage 1 — Spec compliance (skip if no plan/spec)
+Read the plan (`{plans_dir}/{slug}/plan.md`) and/or the PR/issue (`gh pr view --json title,body,closingIssuesReferences`). Emit a **requirement-coverage table**:
 
-### Stage 1 — Spec Compliance (skip if no plan/spec exists)
-- Matches `{plans_dir}/{slug}/plan.md` + phase files?
-- Missing acceptance criteria? Unjustified extras (scope creep)?
-- Feature flag wired (if `feature_flags`)? Localization keys exist (if `localization`)?
-- Accessibility id exposed for new UI used in tests (if `accessibility_ids`)?
-
-**MUST pass before Stage 2.** Fail → output failures, stop, ask user.
-
-### Stage 2 — Code Quality
-
-#### 2.0 — Specialist routing (first)
-For each installed specialist in `specialists`, if the diff matches its signal, delegate
-that slice of the review to it (it knows nuances the general lens misses). Spawn one
-`general-purpose` Agent per match (parallel), telling it to load that skill's SKILL.md and
-review only its speciality, output `{ severity, file:line, problem, fix }`, and skip
-findings the general reviewer covers (architecture, localization, accessibility, DI).
-
-| Signal in diff | Delegate to (if in `specialists`) | Covers |
+| Requirement / AC | Status | Where |
 |---|---|---|
-| `async`/`await`, `Task`, `actor`, `@MainActor`, `Sendable`, `nonisolated`, `AsyncSequence` | `swift-concurrency` | data races, actor isolation, Sendable, Swift 6 |
-| `View`, `@State`, `@StateObject`, `@Observable`, `body: some View`, `.task{}`, nav modifiers | `swiftui-expert` | view composition, state lifecycle, perf |
-| `import Testing`, `@Test`, `#expect`, `@Suite`, or changes under `test_roots` | `swift-testing-expert` | macros, traits, parameterized tests |
-| `*.graphql`, network codegen, client/query/mutation (only if `networking: Apollo-GraphQL`) | `apollo-ios` | codegen, cache keys, watchers, interceptors |
+| <criterion> | ✅ met / ⚠️ partial / ❌ missing | `file:line` |
 
-If none match or none installed → skip 2.0.
-
-#### 2.1 — General iOS lens
-Spawn a `general-purpose` Agent with this prompt (fill placeholders from profile):
-
-```
-Review this iOS Swift diff with Copilot-level rigor.
-Authoritative rules: {rules_file} + {docs_root}/* (read them).
-Flag every Critical / Important / Nit as { severity, file:line, problem, fix }.
-
-── UNIVERSAL iOS CHECKS (always on, every project) ──
-
-Threading & Concurrency Safety (the highest-value class of bugs):
-1. Every ObservableObject/@Observable view-model that touches UI is @MainActor; every
-   published write lands on main. Flag nonisolated(unsafe)/Task.detached writes to UI state.
-2. Type-level isolation, not scattered per-property @MainActor (per-property splits break Sendable).
-3. MainActor.assumeIsolated only when an SDK contract guarantees main-thread delivery — it
-   crashes in release if wrong. Prefer await MainActor.run when the path is reachable.
-4. nonisolated on delegate callbacks that arrive off-main (CLLocationManagerDelegate,
-   URLSessionDelegate, etc.), with an explicit hop to main inside.
-5. Task.detached only for genuinely independent work. Flag any Task.detached touching UI /
-   published state / cancellation-sensitive state — use plain Task {} to inherit context.
-6. Tasks in .task{} auto-cancel on disappear (prefer it). Tasks in .onAppear must be stored
-   and cancelled in .onDisappear.
-7. Cancellation cooperation in async loops — at least one try Task.checkCancellation() or
-   await Task.yield() per iteration (esp. paginated fetches).
-8. No blocking primitives bridging async→sync (DispatchSemaphore.wait, DispatchGroup.wait,
-   RunLoop.run(until:)) — they deadlock the cooperative pool.
-9. Actor reentrancy — every await invalidates prior reads; re-check state after await if a
-   later decision depends on it (the "check balance → await → debit" bug).
-10. New cross-boundary types are Sendable. @unchecked Sendable ONLY with a comment stating
-    the manual invariant.
-11. [weak self] in every escaping closure capturing self unless lifetime is provably tied.
-12. Capture stable references BEFORE await if the property may be mutated during suspension.
-13. Combine AnyCancellable stored in a Set — flag any .sink whose return is dropped.
-14. Network completion callbacks may fire off-main — flag UI/state mutation inside them
-    without a @MainActor hop. (URLSession, WKWebView nav delegate, NSNotification, Timer.)
-15. Heavy work (image/JSON decode, regex compile, Decimal formatting in tight loops) on the
-    main actor — flag if not offloaded.
-
-Memory & lifetime: retain cycles, unbounded caches/lists, leaked observers/timers.
-
-Security & privacy: token leakage; Keychain misuse; missing ATS; PII in UserDefaults;
-missing biometric protection; PII written to logs/analytics/{crash_reporting}/print.
-
-Money correctness (if high_rigor_domains include money): Double anywhere money flows (must
-be Decimal); rounding direction; sign errors (refund vs charge); currency parsing from backend.
-
-Accessibility: VoiceOver order, Dynamic Type clipping, contrast, meaningful labels.
-
-General hygiene: comments WHY-only (no history/ticket refs/paraphrase); no dead/commented-out
-code; no backwards-compat shims for code this diff itself removed.
-
-── PROFILE-GATED CHECKS (run only the ones that apply) ──
-
-If state_type != none:        state uses {state_type}; no ad-hoc enums; transition holes
-                              (loading→loaded/empty/error) covered.
-If di != manual-init:         dependencies injected via {di}; flag global-singleton access
-                              from a view-model where DI exists.
-If navigation is coordinator: navigation closures passed from coordinator → view-model;
-                              flag view-models that push/pop directly.
-If protocol-backed VMs are    every view-model/service has a protocol for mockability.
-the convention:
-If networking != none:        operations in the right module; DTO→domain mapping at the
-                              boundary; UI doesn't import generated network types directly;
-                              (cache/watcher lifecycle if the client caches).
-If localization != none:      no hardcoded user-facing strings; new keys added to the catalog;
-                              generated localization files never edited.
-If accessibility_ids != none: UI referenced by UI tests exposes an id from {accessibility_ids};
-                              list items use stable ids (not array index).
-Always:                       never edit anything under generated_paths.
-
-Severity guide:
-- Critical — data race / crash / state corruption / Decimal precision loss in money path /
-  credential leak / PII in logs
-- Important — state-transition hole, layer violation, memory leak, missing accessibility id
-  on a tested element, missing localization key
-- Nit — style, API cleanliness, naming
-```
-
-Aggregate specialist findings under a per-speciality sub-section.
-
-### Stage 3 — Adversarial Review (always-on, except trivial)
-Skip only if ≤ 2 files AND ≤ 30 lines AND **not** HIGH-RIGOR. HIGH-RIGOR → never skip.
-
-Spawn a `general-purpose` Agent as hostile reviewer:
-```
-You are a hostile reviewer. Try to break this iOS Swift code.
-Diff: <diff>   Context: HIGH-RIGOR <yes/no>, domain <…>
-
-Find:
-1. Security holes — token leakage, Keychain misuse, missing ATS, PII in UserDefaults, missing biometric.
-2. False assumptions — "never nil/empty/zero/negative", "won't race".
-3. Resource exhaustion — unbounded retries/leaks, image decode on main, unbounded list growth.
-4. Races & threading — concurrent mutation, async ordering, re-entry on tap, suspended-task
-   handoff, actor reentrancy, Task.detached touching UI, assumeIsolated without guarantee,
-   off-main callback writes to UI, blocking the cooperative pool.
-5. Supply chain — new deps, transitive risk, unpinned versions.
-6. Observability gaps — silent catch, no crash breadcrumb on critical paths, swallowed errors.
-7. Networking correctness (if networking != none) — nullable-vs-required mismatch, wrong
-   cache key, watcher leaks, stale data after partial update.
-8. Money correctness — Double in money flow, rounding, sign, currency parsing.
-9. PII — anything to logs/analytics/{crash_reporting}/print; PII in snapshot-test screenshots.
-10. Rollback safety — feature flag default-off? kill switch? backend change additive?
-11. iOS-specific — deep links, Universal Links, scene lifecycle, background URL session.
-12. Accessibility — VoiceOver order, Dynamic Type clipping, contrast.
-
-Output per finding: { severity, file:line, problem, exploit/scenario, fix }. Be brutal.
-```
-
-Adjudicate: Critical → must fix before merge · Important → fix or document deferral with a
-ticket · Nit → user choice.
+Flag **scope creep** (unrelated refactors bundled in) and **missing work** (`TODO`, `fatalError("unimplemented")`, empty bodies, stubbed mocks). No spec available → mark "not assessed" (don't invent one). **Stage 1 FAIL → stop, report, ask.**
 
 ---
 
-## Verification Gate
-**Iron law:** no "review passed" claim without fresh verification.
-- Tests/build → run `{verify_command}` (unset → build-only; say so).
-- Bug fixed → original reproducer no longer reproduces.
-- Spec met → each AC mapped to changed code.
+## Stage 2 — Multi-lens review (run lenses in parallel for non-trivial diffs)
 
-Stop if you think "should pass" / "probably fine" → run it, read output, then claim.
+### 2.0 — Specialist routing (FIRST — this is the point)
+For each domain the diff touches, **if that specialist is in the profile's `specialists:` list**, spawn
+a **read-only `general-purpose` Agent** that loads the specialist's `SKILL.md` and reviews **only its
+slice** of the diff. The general lens (2.1) then skips that domain.
 
-## Report Format
+| Diff signal | Route to (if installed) | Reviews |
+|---|---|---|
+| `View`, `@State`/`@Observable`/`@Binding`, `body: some View`, `.task{}`, nav/layout modifiers | **ios-swiftui-expert** | view composition, state ownership, perf, navigation, a11y, Liquid Glass |
+| `async`/`await`, `actor`, `Sendable`, `@MainActor`, `Task`, `nonisolated`, `AsyncSequence` | **ios-concurrency-expert** | data races, actor reentrancy, Sendable, structured concurrency, Swift 6 isolation |
+| `import Testing`, `@Test`, `#expect`/`#require`, `XCTestCase`, `XCTAssert`, files under `test_roots` | **ios-testing-expert** | Swift Testing / XCTest idioms, coverage, flakiness, parallelization |
+| *(future specialists, e.g. networking/persistence)* | **ios-`<domain>`-expert** | its domain |
+
+Specialist agent prompt:
+```
+Load .claude/skills/<specialist>/SKILL.md and apply it. Review ONLY the <domain> aspects of this diff:
+<the relevant hunks>. Skip what a general reviewer covers (naming, layering, localization).
+Output each finding as { severity, file:line, problem, fix, confidence: high|med|low }. Be specific; cite the rule.
+```
+No specialists installed / none match → skip 2.0 (the general lens still covers the floor).
+
+### 2.1 — General iOS lens (always; the floor when a specialist isn't installed)
+Spawn a `general-purpose` Agent (fill `{…}` from profile). **Authoritative: `rules_file` + Apple's Swift API Design Guidelines** — read them.
+
+```
+Review this iOS Swift diff with senior rigor. Flag { severity, file:line, problem, fix, confidence }.
+
+THREADING & CONCURRENCY (highest-value bugs — unless ios-concurrency-expert handled it):
+- @MainActor on UI-touching view-models; published writes land on main; flag Task.detached / nonisolated(unsafe) writes to UI state.
+- actor reentrancy: re-check state after every await. [weak self] in escaping closures. No blocking the cooperative pool (semaphore/group .wait).
+- off-main completion callbacks (URLSession, notifications, Timer) mutating UI without a main hop.
+MEMORY & LIFETIME: retain cycles, unbounded caches, leaked observers/timers, AnyCancellable dropped.
+SECURITY & PRIVACY: token leakage; Keychain (not UserDefaults) for credentials; missing ATS; PII in logs/analytics/{crash_reporting}/print.
+MONEY (if high_rigor_domains): Decimal not Double; rounding; sign (refund vs charge); currency parsing.
+ACCESSIBILITY: VoiceOver labels/order, Dynamic Type, contrast (unless ios-swiftui-expert handled it).
+HYGIENE: comments WHY-only; no dead/commented code; no back-compat shims for code this diff removed.
+
+PROFILE-GATED (run only those that apply):
+- state_type != none → uses {state_type}; transition holes (loading→loaded/empty/error) covered.
+- di != manual-init → injected via {di}; no singleton reach-in from view-models.
+- navigation coordinator → nav closures from coordinator→VM; VMs don't push/pop.
+- networking != none → DTO→domain mapping at the boundary; UI doesn't import generated types.
+- localization != none → no hardcoded user-facing strings; new keys added; generated catalogs untouched.
+- accessibility_ids != none → tested UI exposes an id from {accessibility_ids}.
+- Always: never edit generated_paths.
+```
+
+### 2.2 — Architecture lens (profile-gated)
+Check against the project's `architecture`: **dependency direction** (View → VM → UseCase/Repo; Model independent), **single source of truth** (no `@State` mirroring VM state), **God view-model / massive reducer** (extract UseCases), **presentation isolation** (no UIKit import in a VM; navigation as value types), **stale-async overwrite / missing cancellation**, business logic living in Views. Align to the *existing* pattern — don't propose an architecture switch for a small change.
+
+### 2.3 — Reuse & simplification lens
+Flag both directions: **over-engineering** (duplicated logic that an existing helper covers; redundant/derived state stored; parameter sprawl; needless abstraction/indirection; stringly-typed where an enum exists) **and over-simplification** (distinct concerns collapsed into one unclear unit). Only findings that materially improve maintainability/correctness/cost — never churn for style. (If the repo has a `simplify` skill, this lens can defer the *applying* to it; here it only flags.)
+
+---
+
+## Stage 3 — Adversarial red-team (always-on except trivial; HIGH-RIGOR never skips)
+Try to **break** the change across four lenses (parallel agents for large diffs). Define regression relative to the **stated intent** (what should change vs what must stay unchanged):
+
+1. **Intent & regression** — behavior outside stated scope; broken edge/fallback paths; contract drift between callers & callees; adjacent flows that should have changed together but didn't.
+2. **Security & privacy** — authn/authz gaps, unsafe input, injection, secret/token exposure, risky defaults, trust of unverified data, PII leakage.
+3. **Performance & reliability** — duplicate work / redundant I/O; new work on hot paths (startup/render/request); leaks, retry storms, subscription drift; ordering/race/cancellation brittleness; image decode on main.
+4. **Contracts & coverage** — API/schema/type/flag mismatches; migration & back-compat fallout; missing/weak tests for changed behavior; **detectability** (would a future regression even be observable — logs/metrics/assertions?).
+
+Each finding: `{ severity, file:line, problem, exploit/scenario, fix, confidence }`.
+
+---
+
+## Synthesis (precision over recall)
+Treat all lens output as raw input, then:
+- **Dedup** across lenses; **drop** weak/speculative/style-only items and anything that conflicts with the stated intent.
+- "May be wrong but intent unclear" → a **question**, not a finding.
+- **Normalize:** `{ file:line, category (spec|concurrency|swiftui|testing|architecture|security|perf|contracts|simplification|hygiene), severity, why it matters, fix, confidence }`.
+- **Order:** high-severity high-confidence first. If nothing material, **say so** — don't manufacture feedback.
+
+## Agent-loop feedback (self-improving rules)
+Group findings by rule. A rule firing **≥2×** across the diff = a recurring pattern → propose a one-line **directive** for the project's `rules_file` (e.g. "Always inject `URLSession` via init, never `.shared` in view-models"). Especially useful for AI-generated diffs — it turns repeated misses into standing rules. (Propose only; don't edit `rules_file` without approval.)
+
+## Verification gate
+**Iron law: no "review passed" without fresh verification.** Tests/build → run `{verify_command}` (unset → build-only, say so). Bug-fix → the original reproducer no longer reproduces. Stop if you catch yourself thinking "should pass" — run it.
+
+## Severity model
+- **Critical** — crash · data race · state corruption · `Decimal` precision loss in money · credential leak · PII in logs → **must fix before merge**.
+- **Important** — state-transition hole · layer/dependency violation · memory leak · missing test for changed behavior · missing a11y id on tested UI · missing localization key → **fix before merge or file a ticket**.
+- **Nit** — style, naming, API cleanliness → author's call.
+
+## Report format
 ```markdown
-# Code Review — <input mode>
-**Diff scope**: <files>   **HIGH-RIGOR**: yes/no   **Stages**: spec / quality / adversarial
+Scope: <banner>
+# Code Review — <mode>   HIGH-RIGOR: yes/no   Verdict: APPROVED / CHANGES REQUESTED / BLOCKED
 
-## Stage 1 — Spec Compliance     Status: PASS / FAIL
-## Stage 2 — Code Quality
-### 2.0 Specialist findings  (only sub-sections that fired)
-### 2.1 General iOS lens      Critical / Important / Nit
-## Stage 3 — Adversarial      | # | Severity | File:line | Issue | Fix |
-Adjudication: Accept N · Defer N (tickets) · Reject N (reasoning)
-
-## Verdict   APPROVED / CHANGES REQUESTED / BLOCKED
-## Critical Open Items
-## Recommended Follow-ups
+## Summary   Critical: N · Important: N · Nit: N
+## Stage 1 — Spec       <coverage table> · scope-creep: <…>
+## Findings (by severity)   [Sev] category — file:line — problem → fix (confidence)
+   - Specialist findings grouped under their sub-heading (ios-swiftui-expert / …)
+## Agent-loop feedback   <recurring pattern → proposed rules_file directive>  (or none)
+## Adjacent observations (out of scope, not counted)
+## Critical open items · Recommended follow-ups
 ```
 
 ## Constraints
-- **DO NOT** approve without Stage 3 (unless trivial non-HIGH-RIGOR).
-- **DO NOT** mark APPROVED while Critical findings remain.
-- **DO NOT** rely on memory — read the actual diff + `rules_file`.
-- **MUST** flag every hardcoded user-facing string (if `localization` != none) and every
-  edit to `generated_paths`.
-- **MUST** record adjudication reasoning per finding. Be brutal, specific, useful.
+- **Read-only review** — find and recommend; do NOT apply fixes (that's `ios-execute` / a `simplify` skill).
+- **DO NOT** approve while a Critical remains, or skip Stage 3 (unless trivial & non-HIGH-RIGOR).
+- **DO NOT** rely on memory — read the actual diff + `rules_file`. Specialists win on their domain.
+- **MUST** print the scope banner, record adjudication reasoning, and carry confidence end-to-end.
