@@ -1,0 +1,71 @@
+# Provenance + curation for the ios-testing-expert skill.
+# Maintained by ios-skill-consolidate — do not hand-edit pinned_commit / last_synced.
+
+skill: ios-testing-expert
+domain: iOS testing (Swift Testing + XCTest)
+last_consolidated: 2026-06-16
+
+discovery:
+  enabled: true
+  queries:
+    - "Swift Testing agent skill"
+    - "Swift Testing best practices"
+    - "XCTest to Swift Testing migration"
+    - "iOS unit testing best practices"
+  authority_anchors:
+    - "Apple Developer documentation — Swift Testing"
+    - "Apple Developer documentation — XCTest"
+    - "Apple — Migrating a test from XCTest"
+    - "WWDC testing sessions (Meet/Go further with Swift Testing; Migrate to Swift Testing)"
+
+sources:
+  # ── PRIMARY / SOURCE OF TRUTH: Apple official testing docs + WWDC ──
+  - name: Apple — official testing documentation (Swift Testing + XCTest)
+    url: https://developer.apple.com/documentation/testing
+    also:
+      - https://developer.apple.com/documentation/xctest
+      - https://developer.apple.com/documentation/testing/migratingfromxctest
+      - https://developer.apple.com/videos/play/wwdc2024/10179/   # Meet Swift Testing
+      - https://developer.apple.com/videos/play/wwdc2024/10195/   # Go further with Swift Testing
+      - https://developer.apple.com/videos/play/wwdc2026/267/     # Migrate to Swift Testing (Xcode 27 interop)
+    export_apple_skill: "xcrun agent skills export"   # Xcode 27+ — Apple's testing specialist + XCTest→Swift Testing migration skill
+    path: .
+    status: active
+    primary: true              # ranked first; the authoritative source of truth
+    consulted_version: "Swift Testing (Xcode 16+) / XCTest; Xcode 26.4 toolchain"
+    last_synced: 2026-06-16
+    license: "Apple — reference / learn-from only; never vendor verbatim"
+    note: >
+      VERIFIED 2026-06-16: Apple ships a built-in "testing" specialist (WWDC 2026 Platforms State of
+      the Union, session 102) AND an XCTest→Swift Testing migration skill in the Coding Assistant
+      (WWDC 2026 session 267), exportable via `xcrun agent skills export`. Fold those in as primary
+      once on Xcode 27 (this Mac: 26.4). Apple docs pulled via the backing JSON API (HTML is JS-rendered).
+
+  # ── Community sources (all MIT, all active as of 2026-06-16) ──
+  - name: twostraws/Swift-Testing-Agent-Skill     # "swift-testing-pro", Paul Hudson
+    url: https://github.com/twostraws/Swift-Testing-Agent-Skill
+    path: swift-testing-pro/
+    status: active
+    pinned_commit: 2d6bba14a3c8
+    last_synced: 2026-06-16
+    license: MIT
+
+  - name: bocato/swift-testing-agent-skill        # Eduardo Bocato — doubles / DI / fixtures depth
+    url: https://github.com/bocato/swift-testing-agent-skill
+    path: swift-testing/
+    status: active
+    pinned_commit: c2dd1b051c83
+    last_synced: 2026-06-16
+    license: MIT
+
+  - name: AvdLee/Swift-Testing-Agent-Skill        # "swift-testing-expert", Antoine van der Lee
+    url: https://github.com/AvdLee/Swift-Testing-Agent-Skill
+    path: swift-testing-expert/
+    status: active
+    pinned_commit: 798e9b1a2bca
+    last_synced: 2026-06-16
+    license: MIT
+
+# ── Notes ──
+# The 3 community sources are Swift-Testing-focused; XCTest depth + the official migration mapping
+# come from Apple (primary). Apple's own testing + migration skills (Xcode 27) supersede these once exportable.
