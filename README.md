@@ -1,73 +1,127 @@
 # ios-* skill suite
 
-A project-agnostic iOS engineering workflow.
-All project-specific facts live in **one** file — `.claude/ios-profile.md` — and every
-skill reads it at runtime. The skill bodies themselves contain no hardcoded app names,
-paths, architectures, or commands.
+A **project-agnostic iOS engineering workflow** for Claude Code. Point it at any iOS app, fill in
+**one** file (`.claude/ios-profile.md`), and you get a full **ticket → PR** pipeline plus opt-in
+specialist reviewers. The skill bodies hardcode **no** app names, paths, architectures, or commands —
+every project-specific fact lives in the profile and is read at runtime.
 
 ```
-ios-project-init ──→ ios-profile.md (+ Docs/ tree)        # run ONCE per project
-        │
-        ├─ ios-scout ────────┐
-        ├─ ios-research ──────┤
-        ├─ ios-brainstorm ────┼─→ ios-plan ─→ ios-execute ─→ ios-code-review
-        └─ ios-sequential-thinking  (reasoning aid; plugs in anywhere)
+ios-project-init ──→ .claude/ios-profile.md            # run ONCE per project
 
-ios-resolve ── one command: ticket/context → scout → plan → execute (solo|team) → review → PR
+ios-resolve  ── one command: ticket/context → scout → plan → execute → review → PR
+      │
+      ├─ ios-scout ────────┐
+      ├─ ios-research ──────┤
+      ├─ ios-brainstorm ────┼─→ ios-plan ─→ ios-execute ─→ ios-code-review
+      └─ ios-sequential-thinking  (reasoning aid; plugs in anywhere)
+                                          │ apply           │ route
+                                          └─── ios-specialists ───┘
+                                  (SwiftUI · Concurrency · Testing — opt-in, Apple-primary)
 ```
 
-## Skills
+## Setup (once per project)
 
-| Skill | Implements code? | Purpose |
-|---|---|---|
-| `ios-project-init` | sets up | One-time bootstrap. Greenfield → prescriptive profile; existing app → detect & record. |
-| `ios-resolve` | orchestrates | **The front door.** Ticket/context → scout → plan → execute → review → PR. Chains the others; never implements directly. |
-| `ios-scout` | no | Fast parallel code discovery. |
-| `ios-research` | no | Sourced technical research grounded in the codebase. |
-| `ios-brainstorm` | no | Brutally honest trade-off analysis. |
-| `ios-sequential-thinking` | no | Step-by-step reasoning with revision/branching. |
-| `ios-plan` | no | Phased implementation plan. |
-| `ios-execute` | **yes** | The only implementer. plan → code → verify → review gates. Solo, or `--team N` (parallel worktree devs + peer review + merge). |
-| `ios-code-review` | no | 3-stage adversarial review; delegates to specialist skills if present. |
+1. **Install the skills** — copy or symlink the skill folders into your app (or globally):
+   ```bash
+   cp -R ios-skills/*       <project>/.claude/skills/    # the core workflow
+   cp -R ios-specialists/*  <project>/.claude/skills/    # optional specialists you want
+   ```
+   (Or into `~/.claude/skills/`, or package as a plugin.) **Don't** ship `ios-skill-consolidate/` — it's repo-maintenance.
+2. **Create the profile** — run **`ios-project-init`**. It *detects* an existing app's architecture/paths, or sets conventions for a greenfield app, and writes `.claude/ios-profile.md`. (Or copy `ios-profile.template.md` and fill it in by hand.)
+3. **(Optional) Turn on specialists** — list the ones you installed under `specialists:` in the profile:
+   ```yaml
+   specialists: [ios-swiftui-expert, ios-concurrency-expert, ios-testing-expert]
+   ```
+   Review and implementation then use them automatically; anything not listed is simply skipped.
+
+## How to use it
+
+### The whole loop, one command
+
+```
+ios-resolve ABC-123
+ios-resolve "add pull-to-refresh to the orders list"
+ios-resolve ABC-123 --team 2          # parallel dev team
+ios-resolve ABC-123 --solo --no-pr    # single agent, stop before the PR
+```
+
+`ios-resolve` is the front door. It runs:
+
+```
+fetch ticket/context → create branch → ios-scout → ios-plan ──(you approve)──►
+    ios-execute (TDD; solo or --team N) → ios-code-review → /commit → open PR
+```
+
+You approve the plan **before** any code is written, and nothing is pushed without you.
+
+### Or à la carte
+
+Every skill also stands alone:
+
+```
+ios-scout OrderListViewModel            # where does this live?
+ios-research "offline sync options"     # sourced technical research
+ios-brainstorm "offline support"        # brutal trade-off analysis → decision report
+ios-plan ABC-123                        # phased plan (you approve)
+ios-execute <plan-path> --team 2        # implement (TDD; parallel worktree team)
+ios-code-review #42                     # adversarial, multi-lens review of a PR
+```
+
+## The skills
+
+**Core workflow — `ios-skills/`**
+
+| Skill | Role |
+|---|---|
+| `ios-project-init` | One-time: writes `.claude/ios-profile.md` (detect existing app / set greenfield conventions). |
+| `ios-resolve` | **The front door.** ticket/context → scout → plan → execute → review → PR. Orchestrates; never implements directly. |
+| `ios-scout` | Fast, token-efficient parallel code discovery — returns a *map*, not analysis. |
+| `ios-research` | Sourced technical research grounded in the codebase. |
+| `ios-brainstorm` | Brutally honest trade-off analysis → decision report. |
+| `ios-sequential-thinking` | Step-by-step reasoning aid; plugs in anywhere. |
+| `ios-plan` | Phased implementation plan, with an approval gate. |
+| `ios-execute` | **The only implementer.** plan → code → verify → review. **TDD always**; solo, or `--team N` (parallel worktree devs + peer review + a dedicated edge-case reviewer + merge). |
+| `ios-code-review` | Multi-lens adversarial review; **routes change-typed slices to the specialists**; precision-over-recall findings. |
+
+**Specialists — `ios-specialists/` (optional, opt-in)**
+
+Deep domain reviewers, consolidated from curated community sources with **Apple / official docs as the source of truth**. `ios-code-review` triggers them per change type; `ios-execute` applies them while writing.
+
+| Specialist | Domain |
+|---|---|
+| `ios-swiftui-expert` | SwiftUI — composition, state, performance, navigation, accessibility, Liquid Glass |
+| `ios-concurrency-expert` | Swift Concurrency — async/await, actors, Sendable, Swift 6 isolation |
+| `ios-testing-expert` | Testing — Swift Testing **and** XCTest, migration, flakiness |
+
+**Maintenance — `ios-skill-consolidate/` (repo-only; not shipped)**
+
+Rebuilds any specialist (or a core skill like `ios-code-review`) from its `SOURCES.yaml`: a staleness audit + **web discovery** for newer/better sources + fan-out extraction + synthesis. Run it with no argument to pick a skill from a menu (or `all`). Keeps skills from rotting; Apple/official sources always win on conflict.
+
+## The profile — the one file that matters
+
+`.claude/ios-profile.md` is the single source of every project-specific fact: `source_roots`,
+`architecture`, `state_type`, `di`, `navigation`, `networking`, `verify_command`,
+`high_rigor_domains`, `specialists`, `ticket_fetch`, `default_base_branch`, `pr_tool`, … Every skill
+reads it first, so the skill bodies stay generic. Start from `ios-profile.template.md`.
 
 ## Layout
 
 ```
 ios-agent-skills/
 ├── README.md
-├── ios-profile.template.md      # copy into each consuming project's .claude/ as ios-profile.md
-└── ios-skills/                  # the skills — every child folder is one skill
-    ├── ios-project-init/SKILL.md
-    └── ios-{scout,research,brainstorm,sequential-thinking,plan,execute,code-review,resolve}/SKILL.md
-        # ios-execute/references/team-execution.md — the parallel team engine (loaded for --team)
+├── ios-profile.template.md      # copy to <project>/.claude/ios-profile.md and fill in
+├── ios-skills/                  # core workflow (9 skills)        — ship these
+├── ios-specialists/             # optional specialist reviewers   — ship the ones you want
+├── ios-skill-consolidate/       # repo-maintenance (rebuilds skills from sources) — do NOT ship
+└── docs/                        # design notes
 ```
 
-## Setup
+## Core principles (every skill)
 
-1. Copy `ios-profile.template.md` → `<project>/.claude/ios-profile.md` and fill it in,
-   **or** run `ios-project-init` to generate it interactively.
-2. Make the skills discoverable to Claude Code — copy or symlink the skill folders from
-   `ios-skills/` into a project's `.claude/skills/`, into `~/.claude/skills/`, or package
-   them as a plugin.
-3. (Optional) Install specialist plugins for deeper review and list them under
-   `specialists:` in the profile:
-   - `swiftui-expert` — SwiftUI view/state/perf review
-   - `swift-concurrency` — actor isolation, Sendable, Swift 6 readiness
-   - `swift-testing-expert` — swift-testing macros/traits
-   - `apollo-ios` — only if `networking: Apollo-GraphQL`
-   ```
-   /plugin marketplace add <owner/repo>
-   /plugin install <skill>@<marketplace>
-   ```
-   code-review degrades gracefully if a specialist is absent — it just skips that
-   sub-section.
-
-## Core principles (shared by every skill)
-
-- **YAGNI + KISS + DRY.** Minimum code that solves the problem.
-- **Plan-first.** No implementation code before an approved plan (hard gate in `ios-execute`).
-- **Verify before claiming.** Run `verify_command`; read the output; *then* claim done.
-  Empty `verify_command` → build-only, stated explicitly.
-- **HIGH-RIGOR escalation.** Diffs touching `high_rigor_domains` get mandatory
-  adversarial review + correctness audit.
-- **Profile-driven.** Read `.claude/ios-profile.md` first; never hardcode project facts.
+- **Profile-driven** — read `.claude/ios-profile.md` first; never hardcode project facts.
+- **Plan-first** — no implementation before an approved plan (hard gate in `ios-execute`).
+- **TDD always** — `ios-execute` writes a failing test before the code.
+- **Verify before claiming** — run `verify_command`, read the output, *then* claim done (empty → build-only, stated).
+- **Apple / official = source of truth** — specialists and review defer to Apple docs over community sources.
+- **HIGH-RIGOR escalation** — diffs touching the profile's `high_rigor_domains` get a mandatory adversarial pass + correctness audit.
+- **Precision over recall** — reviews surface a focused list of real findings, not a wall of nits.
