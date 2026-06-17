@@ -35,8 +35,9 @@ new sources and flags dead ones. Output is one consumable `SKILL.md` (+ `referen
     1. ios-swiftui-expert
     2. ios-concurrency-expert
     3. ios-testing-expert
-    4. ios-code-review
-    5. …                       (any ios-specialists/*/ or ios-skills/*/ with a SOURCES.yaml)
+    4. ios-solid-expert
+    5. ios-code-review
+    6. …                       (any ios-specialists/*/ or ios-skills/*/ with a SOURCES.yaml)
     n. All
   ```
   The list is **built dynamically** from what's on disk — dropping a `SOURCES.yaml` into any

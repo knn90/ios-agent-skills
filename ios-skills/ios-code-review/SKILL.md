@@ -74,6 +74,7 @@ override**: if set, restrict routing to that list; `specialists: none` turns rou
 | `View`, `@State`/`@Observable`/`@Binding`, `body: some View`, `.task{}`, nav/layout modifiers | **ios-swiftui-expert** | view composition, state ownership, perf, navigation, a11y, Liquid Glass |
 | `async`/`await`, `actor`, `Sendable`, `@MainActor`, `Task`, `nonisolated`, `AsyncSequence` | **ios-concurrency-expert** | data races, actor reentrancy, Sendable, structured concurrency, Swift 6 isolation |
 | `import Testing`, `@Test`, `#expect`/`#require`, `XCTestCase`, `XCTAssert`, files under `test_roots` | **ios-testing-expert** | Swift Testing / XCTest idioms, coverage, flakiness, parallelization |
+| new/changed types, protocols, services, view-models; DI / composition wiring; large classes; cross-layer changes | **ios-solid-expert** | SOLID (SRP/OCP/LSP/ISP/DIP), decoupling (Decorator/Composite/Adapter), composition-root DI, framework isolation |
 | *(future specialists, e.g. networking/persistence)* | **ios-`<domain>`-expert** | its domain |
 
 Specialist agent prompt:
@@ -111,7 +112,7 @@ PROFILE-GATED (run only those that apply):
 ```
 
 ### 2.2 — Architecture lens (profile-gated)
-Check against the project's `architecture`: **dependency direction** (View → VM → UseCase/Repo; Model independent), **single source of truth** (no `@State` mirroring VM state), **God view-model / massive reducer** (extract UseCases), **presentation isolation** (no UIKit import in a VM; navigation as value types), **stale-async overwrite / missing cancellation**, business logic living in Views. Align to the *existing* pattern — don't propose an architecture switch for a small change.
+Check against the project's `architecture`: **dependency direction** (View → VM → UseCase/Repo; Model independent), **single source of truth** (no `@State` mirroring VM state), **God view-model / massive reducer** (extract UseCases), **presentation isolation** (no UIKit import in a VM; navigation as value types), **stale-async overwrite / missing cancellation**, business logic living in Views. Align to the *existing* pattern — don't propose an architecture switch for a small change. (When `ios-solid-expert` is installed, 2.0 already covered the SOLID/decoupling depth; this lens then focuses on pattern-fit + the project's `architecture`, not re-deriving the principles.)
 
 ### 2.3 — Reuse & simplification lens
 Flag both directions: **over-engineering** (duplicated logic that an existing helper covers; redundant/derived state stored; parameter sprawl; needless abstraction/indirection; stringly-typed where an enum exists) **and over-simplification** (distinct concerns collapsed into one unclear unit). Only findings that materially improve maintainability/correctness/cost — never churn for style. (If the repo has a `simplify` skill, this lens can defer the *applying* to it; here it only flags.)
