@@ -1,0 +1,70 @@
+# Provenance + curation for the ios-solid-expert skill.
+# Maintained by ios-skill-consolidate — do not hand-edit pinned_commit / last_synced.
+
+skill: ios-solid-expert
+domain: SOLID principles + clean-architecture decoupling (iOS / Swift)
+last_consolidated: 2026-06-16
+
+discovery:
+  enabled: true
+  queries:
+    - "SOLID principles Swift agent skill"
+    - "Swift clean architecture dependency inversion"
+    - "iOS decoupling decorator composite adapter"
+    - "protocol-oriented design Swift"
+  authority_anchors:
+    - "Robert C. Martin — SOLID / Clean Architecture (canonical, general SW engineering)"
+    - "Apple — Design protocol interfaces in Swift (WWDC) + The Swift Programming Language: Protocols"
+    - "the consuming project's architecture + rules_file"
+
+sources:
+  # ── PRIMARY / SOURCE OF TRUTH ──
+  - name: SOLID (Robert C. Martin) + Apple protocol-oriented design
+    url: https://en.wikipedia.org/wiki/SOLID
+    also:
+      - https://developer.apple.com/videos/play/wwdc2022/110353/   # Design protocol interfaces in Swift
+      - https://docs.swift.org/swift-book/documentation/the-swift-programming-language/protocols/
+      - "Robert C. Martin — Clean Architecture: A Craftsman's Guide (2017); SRP/OCP/LSP/ISP/DIP"
+    path: .
+    status: active
+    primary: true
+    consulted_version: "SOLID (Martin); Swift 6 protocol-oriented design"
+    last_synced: 2026-06-16
+    license: "Canonical SW-engineering principles (public knowledge) + Apple reference; re-express in original words"
+    note: >
+      SOLID is general software engineering — Apple takes NO official app-architecture stance, so the
+      authority is Martin's principles, translated to Swift via Apple's protocol-oriented design. The
+      principles are public knowledge (not proprietary); write original guidance. PATTERN selection
+      (MVVM/Clean/VIPER/TCA) is owned by the architecture lens (efremidze-based), not this skill.
+
+  # ── Worked example (MIT — vendorable with attribution) ──
+  - name: essentialdevelopercom/essential-feed-case-study   # Caio Zullo & Mike Apostolakis (Essential Developer)
+    url: https://github.com/essentialdevelopercom/essential-feed-case-study
+    path: .
+    status: active
+    pinned_commit: 706a0da381b2
+    last_synced: 2026-06-16
+    license: MIT
+    note: >
+      Best permissively-licensed worked example of dependency inversion, composition root, and the
+      Decorator/Composite/Adapter/Facade decoupling patterns in Swift (the "Feed" case study). NOTE:
+      Essential Developer's flagship "iOS Lead Essentials" COURSE is paid/copyrighted — use only this
+      MIT repo + their public articles (cite/link), never course content.
+
+  # ── Reference only (NO LICENSE — cite/learn-from, DO NOT vendor) ──
+  - name: ramziddin/solid-skills
+    url: https://github.com/ramziddin/solid-skills
+    path: skills/
+    status: reference            # not 'active' — see license
+    pinned_commit: b113ce6871c0
+    last_synced: 2026-06-16
+    license: "NONE (all rights reserved) — cite/learn-from only; do NOT copy text/structure"
+    note: >
+      445★ SOLID/TDD/clean-architecture agent skill, but ships with NO license (all rights reserved).
+      We may read it and learn the (public) SOLID principles it covers, but must NOT copy its wording
+      or structure. Referenced per user request; revisit if it gains a permissive license.
+
+# ── Evaluated, NOT added ──
+# - alpozcan/iOSAgentSkills — DROPPED: not community-validated (no stars / no forks), low authority.
+# - dpearson2699/swift-ios-skills — PolyForm Perimeter (non-compete) license: not redistribution-safe.
+# - igorgcustodio/swift-clean-architecture — no license + stale (2021).
