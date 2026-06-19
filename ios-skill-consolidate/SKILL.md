@@ -1,6 +1,6 @@
 ---
 name: ios-skill-consolidate
-description: "Repo-maintenance skill (NOT shipped to consuming projects). (Re)generates a consolidated specialist skill (e.g. ios-swiftui-expert, ios-concurrency-expert, ios-testing-expert, ios-code-review) from its SOURCES.yaml — audits existing sources for staleness, discovers newer/better sources on the web, then fetches, synthesizes, and writes the consolidated SKILL.md. Run with no target to pick from a menu of available skills (or `all`). Use to create or refresh a specialist skill and keep it from going stale."
+description: "Repo-maintenance skill (NOT shipped to consuming projects). (Re)generates a consolidated specialist skill (e.g. ios-swiftui-expert, ios-concurrency-expert, ios-testing-expert, ios-code-review) from its SOURCES.yaml — audits existing sources for staleness, discovers newer/better sources on the web, then fetches, synthesizes, and writes the consolidated SKILL.md. Run with no target to pick from a menu of available skills (or `all`). Skills whose SOURCES.yaml sets mode: audit-only (e.g. ios-plan) get a source freshness audit only — no content rewrite. Use to create or refresh a specialist skill and keep it from going stale."
 argument-hint: "[target-skill | all] [--discover | --no-discover] [--open-pr]"
 ---
 
@@ -24,6 +24,13 @@ new sources and flags dead ones. Output is one consumable `SKILL.md` (+ `referen
 > **Runs per selected target.** Step 0 picks the target(s); Steps 1–5 then run **once per target**
 > (for `All`, loop over every specialist).
 
+> **Audit-only targets.** A `SOURCES.yaml` with `mode: audit-only` marks a skill whose body is
+> **hand-curated, not synthesized** (e.g. `ios-plan` — a workflow/orchestration skill, not
+> distilled domain knowledge). For these, run **Step 1 (staleness + discovery)** and **Step 5
+> (report)** only — **skip Steps 2–4 and NEVER write the target's `SKILL.md`.** Output is a
+> freshness report + a proposed `SOURCES.yaml` diff (retire dead / add candidate sources) plus a
+> short "consider adapting" note. A human ports any ideas by hand, selectively.
+
 ### Step 0 — Select target(s)
 - If a `target-skill` arg was given, use it. If `all` was given, select every specialist.
 - **Otherwise, present a menu.** Discover consolidatable skills by scanning for any skill folder
@@ -44,7 +51,9 @@ new sources and flags dead ones. Output is one consumable `SKILL.md` (+ `referen
   `ios-specialists/<name>/` or `ios-skills/<name>/` makes it appear automatically, no edit here.
 
 ### Step 0.1 — Load (for the selected target)
-Read `{target}/SKILL.md` + `{target}/SOURCES.yaml` (sources, `domain`, `discovery` config, licenses).
+Read `{target}/SKILL.md` + `{target}/SOURCES.yaml` (sources, `domain`, `discovery` config, licenses,
+`mode`). **If `mode: audit-only`** → run Steps 1 and 5 only; skip Steps 2–4 (no fetch, no synthesis,
+no `SKILL.md` write).
 
 ### Step 1 — Source Audit & Discovery  ← the freshness guard (skip with `--no-discover`)
 
@@ -80,7 +89,7 @@ For each `status: active` source: fetch at HEAD (`gh` / clone / `WebFetch`); rec
 ### Step 3 — Extract (fan-out)
 One sub-agent per source → pull its domain guidance as structured notes: *claim · rationale · code idiom · source*.
 
-### Step 4 — Synthesize
+### Step 4 — Synthesize   (skipped for `mode: audit-only` targets — never rewrite their SKILL.md)
 Merge into `{target}/SKILL.md` (overflow detail → `references/`) under the **house style**:
 - **Precedence — the `primary: true` source wins.** The official source (Apple / Swift.org docs,
   WWDC, HIG — whichever the skill's `SOURCES.yaml` marks `primary: true`) is the **source of truth**
@@ -94,6 +103,8 @@ Merge into `{target}/SKILL.md` (overflow detail → `references/`) under the **h
 Update `SOURCES.yaml` (`last_consolidated`, SHAs, dates, status changes). Emit:
 - **Source-audit summary** — retired / added / unchanged (with reasons).
 - **Content diff summary** — what changed in the guidance + any contested points.
+  - *Audit-only targets:* no content diff (SKILL.md untouched). Instead emit a **"consider
+    adapting"** note — what shifted upstream that a human might fold into the skill by hand.
 
 Then **stop for human review**. With `--open-pr`, open a PR; else leave it in the working tree.
 
@@ -112,3 +123,4 @@ Full discovery on the scheduled pass; on-demand refreshes can `--no-discover`.
 - **Reproducible** — pin commits so a re-run is deterministic and upstream changes are diffable.
 - **Never auto-commit / auto-push** — output for review.
 - **Generalizes** — same flow rebuilds any specialist (`ios-concurrency-expert`, `ios-testing-expert`, …); each has its own `SOURCES.yaml`.
+- **Respect `mode: audit-only`** — for hand-curated workflow skills (`ios-plan`), only audit sources + report; never fetch, synthesize, or write their `SKILL.md`.

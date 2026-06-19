@@ -215,7 +215,11 @@ that drives this skill).
 ## Sources
 Planning methodology adapted from:
 - [planning-and-task-breakdown](https://github.com/addyosmani/agent-skills/blob/main/skills/planning-and-task-breakdown/SKILL.md)
-  — dependency-graph build order, vertical slicing, per-task sizing (XL→split), and checkpoint cadence.
+  — dependency-graph build order, vertical slicing, per-task sizing (XL→split), checkpoint cadence,
+  and per-slice acceptance criteria.
+
+Tracked in `SOURCES.yaml` (`mode: audit-only`): `ios-skill-consolidate` flags staleness / surfaces
+newer sources, but this skill is hand-curated — adaptation is never auto-merged.
 
 ## Constraints
 - **DO NOT** implement — plans only. **DO NOT** auto-invoke `ios-execute`.
