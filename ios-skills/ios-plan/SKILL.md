@@ -189,6 +189,7 @@ localization strings provided? accessibility ids reviewed? QA bandwidth? Save to
 ```
 Plan ready: {plans_dir}/{plan-dir}/plan.md
 - Implement now            → ios-execute {plans_dir}/{plan-dir}/plan.md
+- Grill open decisions     → ios-grill {plans_dir}/{plan-dir}
 - Adversarial review first → ios-plan red-team <plan-dir>
 - Validate with team       → ios-plan validate <plan-dir>
 ```

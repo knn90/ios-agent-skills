@@ -1,7 +1,7 @@
 ---
 name: ios-resolve
-description: "Resolve a ticket or a free-form request end-to-end for an iOS project: branch → scout → plan (with approval) → implement (solo or parallel team) → verify → review → commit → PR. The single front door that chains ios-scout, ios-plan, ios-execute, and ios-code-review. Reads .claude/ios-profile.md. Use when given a ticket id or told to 'resolve/ship/work on' something end-to-end."
-argument-hint: "[TICKET-ID | \"description\"] [--devs N | --solo] [--base BRANCH] [--skip-approval] [--no-pr]"
+description: "Resolve a ticket or a free-form request end-to-end for an iOS project: branch → scout → plan → grill (harden) → approval → implement (solo or parallel team) → verify → review → commit → PR. The single front door that chains ios-scout, ios-plan, ios-grill, ios-execute, and ios-code-review. Reads .claude/ios-profile.md. Use when given a ticket id or told to 'resolve/ship/work on' something end-to-end."
+argument-hint: "[TICKET-ID | \"description\"] [--devs N | --solo] [--base BRANCH] [--skip-approval] [--no-grill] [--no-pr]"
 ---
 
 # Resolve — iOS end-to-end workflow
@@ -47,7 +47,8 @@ ios-resolve "fix crash on empty cart" --no-pr
 - **"free-form"** — used as the task description (no ticket fetch).
 - `--devs N` / `--solo` — passed to `ios-execute` (else auto: LOW=solo·MEDIUM=2·HIGH=3).
 - `--base BRANCH` — PR target + branch-from point (default `default_base_branch`, else `main`).
-- `--skip-approval` — skip the plan approval gate (trivial/well-understood only).
+- `--skip-approval` — skip the plan approval gate (trivial/well-understood only). Also skips grill.
+- `--no-grill` — skip the plan stress-test (Step 4.5) but keep the approval gate.
 - `--no-pr` — stop after commit; print push/PR steps for the user.
 
 ---
@@ -59,7 +60,9 @@ ios-resolve "fix crash on empty cart" --no-pr
 1. RESOLVE INPUT   ticket → fetch context · free-form → use as description
 2. INIT            branch {type}/{slug} off {PR_BASE}; create {plans_dir}/{slug}/_status.md
 3. SCOUT           ios-scout → scope.md
-4. PLAN            ios-plan  → plan.md            ──► APPROVAL GATE (unless --skip-approval)
+4. PLAN            ios-plan  → plan.md
+4.5 GRILL          ios-grill <plan-dir> → harden plan + grill.md   (skip if --no-grill/--skip-approval)
+   PLAN GATE       ──► APPROVAL GATE on the hardened plan (unless --skip-approval)
 5. IMPLEMENT       ios-execute <plan> [--team N|--solo]  (does verify + review gates itself)
 6. COMMIT          ensure work is committed via /commit (granular)
 7. PR              push + open PR → {PR_BASE}     (skip if --no-pr or pr_tool: none)
@@ -85,13 +88,21 @@ ios-resolve "fix crash on empty cart" --no-pr
 Invoke `ios-scout {target}` (target = main component/feature from the ticket, or the description).
 Write its map to `{plans_dir}/{slug}/scope.md`. Skip only for a truly trivial single-file change.
 
-### Step 4 — Plan (+ approval gate)
+### Step 4 — Plan
 Invoke `ios-plan` for this task (point it at the Step 3 `scope.md` so it reuses that map instead
 of re-scouting) → writes `{plans_dir}/{slug}/plan.md` (phased, with a Testing
 Strategy, a `complexity` field, and an Owner column on the File Changes table for team runs).
 **Read the plan's `complexity`** — it sets the auto dev count for Step 5.
 
-Then, unless `--skip-approval`, present a summary and **wait**:
+### Step 4.5 — Grill (harden the plan)
+Unless `--no-grill` or `--skip-approval`, invoke `ios-grill {plans_dir}/{slug}` to interrogate
+the open decisions in `plan.md` one at a time (each with a recommended answer, codebase checked
+first) → writes the resolved decisions back into `plan.md` + a `grill.md` log. `ios-grill`
+auto-skips (no questions) when the plan is already unambiguous. Do **not** duplicate its
+questioning here. The approval gate below then runs on the **hardened** plan.
+
+### Approval gate
+Unless `--skip-approval`, present a summary of the hardened plan and **wait**:
 ```
 Plan ready: {plans_dir}/{slug}/plan.md
 - Complexity: {…}   Suggested devs: {auto N}   Files: {n}   Feature flag: {name|n/a}   HIGH-RIGOR: {yes/no}
@@ -162,7 +173,8 @@ Next: review the PR · add reviewers · merge when green
 | Greenfield (no `source_roots`) | stop; tell the user to scaffold the app first |
 
 ## Related skills
-`ios-scout` (Step 3) · `ios-plan` (Step 4) · `ios-execute` (Step 5; `--team` → its
+`ios-scout` (Step 3) · `ios-plan` (Step 4) · `ios-grill` (Step 4.5, plan stress-test) ·
+`ios-execute` (Step 5; `--team` → its
 `references/team-execution.md`) · `ios-code-review` (review gate, inside `ios-execute`) ·
 `/commit` (Step 6) · `ios-project-init` (profile bootstrap).
 
