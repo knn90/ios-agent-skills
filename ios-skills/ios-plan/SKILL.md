@@ -13,6 +13,14 @@ and phased documentation.
 
 **YAGNI + KISS + DRY.** Honest, brutal, concise.
 
+## Plan mode (MANDATORY)
+Do all research and design inside Claude Code **plan mode**. Enter plan mode **before** Step 0
+so nothing is written or mutated while planning — Phases 1–4 (profile, ticket, codebase
+analysis, solution design) are read-only. When the design is ready, call **`ExitPlanMode`**
+with the plan summary: this is the approval gate. Only **after** the user approves do you leave
+plan mode and write the plan files (Phase 5) + run the handoff (Phase 8). If the host cannot
+enter plan mode, state that explicitly and fall back to the Phase 8 soft gate.
+
 ## Step 0 — Load profile
 
 Read `.claude/ios-profile.md`: `architecture`, `state_type`, `di`, `navigation`,
@@ -64,6 +72,7 @@ cross-module / `high_rigor_domains`→`--hard`; real uncertainty between 2 appro
 
 ## Process Flow
 ```
+0. Enter plan mode (MANDATORY) — read-only for steps 1–7
 1. Parse args
 2. Pre-creation scan ({plans_dir})
 3. Fetch ticket (ticket_fetch) if TICKET-ID
@@ -71,10 +80,11 @@ cross-module / `high_rigor_domains`→`--hard`; real uncertainty between 2 appro
 5. Codebase analysis (ios-scout or Glob/Grep)
 6. (optional) Research (ios-research) for --hard / --two
 7. Solution design
-8. Write plan.md + per-phase files under {plans_dir}
-9. (optional) Red team → red-team.md
-10. (optional) Validate interview → validation.md
-11. Output execute handoff (do NOT auto-invoke)
+8. ExitPlanMode → present plan summary, APPROVAL GATE (nothing written before this)
+9. Write plan.md + per-phase files under {plans_dir}
+10. (optional) Red team → red-team.md
+11. (optional) Validate interview → validation.md
+12. Output execute handoff (do NOT auto-invoke)
 ```
 
 ## Phase 1 — Context
@@ -98,7 +108,9 @@ operation + cache strategy ({networking}) · feature flag (`feature_flags`) + de
 rollout · backwards-compat/migration · testing strategy (unit/snapshot/UI with accessibility
 ids) · rollback plan. `--two` → comparison table.
 
-## Phase 5 — Plan documentation
+## Phase 5 — Plan documentation (only AFTER `ExitPlanMode` approval)
+Reached only once the user approves the plan presented via `ExitPlanMode`; you are now out of
+plan mode, so writes are allowed.
 Dir: `{plans_dir}/{YYMMDD-HHMM}-{TICKET|slug}/` — `{YYMMDD-HHMM}` from
 `bash -c 'date +%y%m%d-%H%M'`. Create if missing.
 
@@ -185,6 +197,9 @@ First 1-2 features have no prior art — the plan **establishes** the pattern. R
 
 ## Constraints
 - **DO NOT** implement — plans only. **DO NOT** auto-invoke `ios-execute`.
+- **MUST** plan inside plan mode: Phases 1–4 read-only, then `ExitPlanMode` as the approval
+  gate before any plan file is written. If the host can't enter plan mode, say so and fall back
+  to the Phase 8 gate.
 - **DO NOT** create plans outside `{plans_dir}`. **MUST** follow `rules_file`.
 - **MUST** include `{verify_command}` in each phase's Verification (or note build-only).
 - **Sacrifice grammar for concision.**
