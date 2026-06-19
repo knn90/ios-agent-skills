@@ -141,7 +141,7 @@ created: <YYYY-MM-DD>
 `plan.md` body:
 ```markdown
 ## Overview            <2-4 sentences>
-## Acceptance Criteria
+## Acceptance Criteria   <feature-level; every AC must map to ≥1 slice's per-phase Acceptance criteria>
 ## Approach            <chosen + rationale; link brainstorm report if any>
 ## Phases              one vertical slice per phase, in dependency order (see Step 4)
 ## File Changes (Summary Table)  | File | Module | Type | Change | Owner |
@@ -157,13 +157,20 @@ Per-phase file:
 ```markdown
 ## Phase N: <slice name>          # one vertical slice, end-to-end
 ### Goal           <1-2 sentences — the user-visible capability this slice delivers>
+### Acceptance criteria           # this slice's share of the plan's ACs — specific & testable
+- [ ] <testable condition>
+- [ ] <testable condition>
 ### Steps
 1. **<Step>** (file: `<path>:<line>`, size: XS/S/M/L) — what to change · why · test to add/update
        # no step > ~5 files; an XL step must be split into smaller steps
-### Checkpoint        # app builds & tests green before the next slice starts
-- Run `{verify_command}`  (if unset → build-only; state it)
-- Manual: <if applicable>
+### Checkpoint        # all boxes green before the next slice starts
+- [ ] `{verify_command}` passes  (if unset → build-only; state it)
+- [ ] Acceptance criteria above all met
+- [ ] Manual: <if applicable>
+### Depends on        Phase <N>, … | none
 ```
+(Files & owners live in `plan.md`'s File Changes table; per-step `size` covers scope — don't
+restate them here.)
 
 ### Step 7 — Red team / Validate (optional)
 **Red team** (`--hard`/`--two` or subcommand) — `ios-plan red-team <plan-dir>` spawns an
