@@ -1,0 +1,64 @@
+# Provenance + curation for the ios-tdd skill.
+# Maintained by ios-skill-consolidate — do not hand-edit pinned_commit / last_synced.
+
+skill: ios-tdd
+domain: Test-driven development discipline (red-green-refactor, prove-it, vertical slices) — process, not framework mechanics
+last_consolidated: 2026-06-20
+
+# Scope note: framework SEMANTICS (Swift Testing / XCTest syntax, doubles, migration,
+# parallelization) are OWNED by ios-testing-expert. ios-tdd consolidates the *process* only and
+# cross-links there. Keep the two from overlapping when re-consolidating.
+
+discovery:
+  enabled: true
+  queries:
+    - "test-driven development agent skill"
+    - "TDD red green refactor best practices"
+    - "tracer bullet vertical slice TDD"
+    - "test behavior not implementation"
+    - "DAMP not DRY tests"
+  authority_anchors:
+    - "Kent Beck — Test-Driven Development by Example"
+    - "Google Testing Blog / Software Engineering at Google — test sizes, DAMP, state vs interaction"
+    - "Martin Fowler — test double taxonomy, refactoring"
+
+sources:
+  # ── Community sources (both MIT, both active as of 2026-06-20) ──
+  - name: addyosmani/agent-skills — test-driven-development
+    url: https://github.com/addyosmani/agent-skills
+    path: skills/test-driven-development/
+    status: active
+    pinned_commit: TBD          # pin on first ios-skill-consolidate run
+    last_synced: 2026-06-20
+    license: MIT
+    note: >
+      Primary structural source — TDD cycle, Prove-It pattern, test pyramid + test sizes,
+      good-test rules (state-not-interaction, DAMP, real>mocks, AAA), anti-patterns,
+      rationalizations, red flags. The "Browser Testing with DevTools / Chrome MCP" section was
+      intentionally DROPPED (not iOS-relevant) — replaced by run-the-suite / simulator guidance.
+
+  - name: mattpocock/skills — engineering/tdd
+    url: https://github.com/mattpocock/skills
+    path: skills/engineering/tdd/
+    also:
+      - https://github.com/mattpocock/skills/blob/main/skills/engineering/tdd/tests.md       # → references/tests.md
+      - https://github.com/mattpocock/skills/blob/main/skills/engineering/tdd/mocking.md     # → references/mocking.md
+      - https://github.com/mattpocock/skills/blob/main/skills/engineering/tdd/refactoring.md # → references/refactoring.md
+    status: active
+    pinned_commit: TBD          # pin on first ios-skill-consolidate run
+    last_synced: 2026-06-20
+    license: MIT
+    note: >
+      Source for the vertical-slice / tracer-bullet framing (horizontal slicing as the cardinal
+      anti-pattern), "never refactor while RED", behavior-through-public-interface emphasis, and
+      the plan-the-behaviors / you-can't-test-everything planning step. The three companion files
+      (tests/mocking/refactoring) were rewritten Swift-native into references/ — mocking.md keeps
+      the *decision* (boundaries + DI + SDK-style protocols) and defers the double taxonomy +
+      #if DEBUG fixture placement to ios-testing-expert §8 to avoid duplication.
+
+# ── Notes ──
+# Examples were rewritten Swift-native (Swift Testing #expect, Decimal, view-model-not-view).
+# Framework mechanics deliberately deferred to ios-testing-expert to avoid duplication.
+# On the first real ios-skill-consolidate run: fetch both repos at HEAD, fill the two pinned_commit
+# fields, and consider Apple's built-in coding-assistant skills (Xcode 27, `xcrun agent skills export`)
+# as an authority anchor for any iOS-specific test-flow guidance.
