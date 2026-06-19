@@ -21,12 +21,28 @@ ios-resolve  ── one command: ticket/context → scout → plan → execute �
 
 ## Setup (once per project)
 
-1. **Install the skills** — copy or symlink the skill folders into your app (or globally):
+1. **Install the skills** — recommended: install as a Claude Code **plugin** (handles
+   install, update, and uninstall natively, across all your projects):
+   ```
+   /plugin marketplace add knn90/ios-agent-skills
+   /plugin install ios-skills@ios-agent-skills
+   ```
+   Skills are then invocable as `ios-skills:ios-resolve`, `ios-skills:ios-scout`, … and are
+   auto-selected by description as usual. Update with `/plugin marketplace update ios-agent-skills`;
+   remove with `/plugin uninstall ios-skills@ios-agent-skills`. (The maintenance-only
+   `ios-skill-consolidate/` is intentionally not part of the plugin.)
+
+   <details><summary>Manual install (no plugin)</summary>
+
+   Copy the skill folders into your app or globally:
    ```bash
    cp -R ios-skills/*       <project>/.claude/skills/    # the core workflow
    cp -R ios-specialists/*  <project>/.claude/skills/    # optional specialists you want
    ```
-   (Or into `~/.claude/skills/`, or package as a plugin.) **Don't** ship `ios-skill-consolidate/` — it's repo-maintenance.
+   (Or into `~/.claude/skills/`.) **Don't** ship `ios-skill-consolidate/` — it's repo-maintenance.
+   </details>
+
+   Newly installed skills appear after the Claude Code session is restarted/reloaded.
 2. **Create the profile** — run **`ios-project-init`**. It *detects* an existing app's architecture/paths, or sets conventions for a greenfield app, and writes `.claude/ios-profile.md`. (Or copy `ios-profile.template.md` and fill it in by hand.)
 3. **Specialists work automatically** once installed (step 1) — `ios-code-review` routes change-typed
    slices to them and `ios-execute` applies them while writing. No extra opt-in. The profile's
@@ -111,11 +127,14 @@ reads it first, so the skill bodies stay generic. Start from `ios-profile.templa
 
 ```
 ios-agent-skills/
+├── .claude-plugin/              # plugin + marketplace manifests (the one-command install)
+│   ├── plugin.json              #   bundles ios-skills/ + ios-specialists/ as the plugin
+│   └── marketplace.json         #   self-marketplace listing the plugin
 ├── README.md
 ├── ios-profile.template.md      # copy to <project>/.claude/ios-profile.md and fill in
-├── ios-skills/                  # core workflow (9 skills)        — ship these
-├── ios-specialists/             # optional specialist reviewers   — ship the ones you want
-├── ios-skill-consolidate/       # repo-maintenance (rebuilds skills from sources) — do NOT ship
+├── ios-skills/                  # core workflow (9 skills)        — shipped by the plugin
+├── ios-specialists/             # optional specialist reviewers   — shipped by the plugin
+├── ios-skill-consolidate/       # repo-maintenance (rebuilds skills from sources) — NOT shipped
 └── docs/                        # design notes
 ```
 

@@ -1,0 +1,16 @@
+{
+  "name": "ios-skills",
+  "description": "Project-agnostic iOS engineering workflow for Claude Code: ticket → scout → plan → execute → review → PR, plus SwiftUI / Concurrency / Testing / SOLID specialist reviewers. Every project-specific fact is read at runtime from .claude/ios-profile.md.",
+  "version": "0.1.0",
+  "author": {
+    "name": "knn90",
+    "url": "https://github.com/knn90"
+  },
+  "homepage": "https://github.com/knn90/ios-agent-skills",
+  "repository": "https://github.com/knn90/ios-agent-skills",
+  "keywords": ["ios", "swift", "swiftui", "workflow", "code-review"],
+  "skills": [
+    "./ios-skills/",
+    "./ios-specialists/"
+  ]
+}

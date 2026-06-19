@@ -1,0 +1,14 @@
+{
+  "name": "ios-agent-skills",
+  "owner": {
+    "name": "knn90",
+    "url": "https://github.com/knn90"
+  },
+  "plugins": [
+    {
+      "name": "ios-skills",
+      "source": "./",
+      "description": "iOS engineering workflow + specialist reviewers (scout · plan · execute · code-review · resolve, plus SwiftUI / Concurrency / Testing / SOLID experts)."
+    }
+  ]
+}
