@@ -112,9 +112,12 @@ skill — SwiftUI → `ios-swiftui-expert`, concurrency → `ios-concurrency-exp
 `ios-testing-expert` — **load its `SKILL.md` and follow it** as you write. No profile entry needed; the
 profile's `specialists:` can restrict the set or `none` to disable. (For `--team`, each dev does this for its slice.)
 
-**Test-First (TDD) — always.** Drive every unit of behavior with a test:
+**Test-First (TDD) — always.** **Load and follow `ios-tdd`** (the TDD-discipline skill — the canonical
+home for the cycle, the prove-it pattern, and vertical slicing). Drive every unit of behavior with a test:
 **RED** (write a failing test) → **GREEN** (minimum code to make it pass) → **REFACTOR** (tidy,
-tests stay green). Never write implementation before a test that fails without it. This holds in
+tests stay green). **Run the suite at each step** — actually execute it (via `verify_command` or a
+targeted `-only-testing:` run) and read the output: see RED fail for the expected reason, then see GREEN
+pass. "Should pass" is not done. Never write implementation before a test that fails without it. This holds in
 **solo and team** mode, **greenfield and existing** code (greenfield: the first test also
 establishes the test pattern). The only exemptions are pure non-logic changes — copy, assets,
 config, formatting — and you must say so in the report. If a change is hard to test, that's a

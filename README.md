@@ -111,6 +111,7 @@ Deep domain reviewers, consolidated from curated community sources with **Apple 
 | `ios-swiftui-expert` | SwiftUI — composition, state, performance, navigation, accessibility, Liquid Glass |
 | `ios-concurrency-expert` | Swift Concurrency — async/await, actors, Sendable, Swift 6 isolation |
 | `ios-testing-expert` | Testing — Swift Testing **and** XCTest, migration, flakiness |
+| `ios-tdd` | TDD discipline — red→green→refactor, prove-it bug repro, vertical slices (process, pairs with `ios-testing-expert`) |
 
 **Maintenance — `ios-skill-consolidate/` (repo-only; not shipped)**
 
