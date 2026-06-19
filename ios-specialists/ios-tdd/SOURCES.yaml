@@ -40,6 +40,10 @@ sources:
   - name: mattpocock/skills — engineering/tdd
     url: https://github.com/mattpocock/skills
     path: skills/engineering/tdd/
+    also:
+      - https://github.com/mattpocock/skills/blob/main/skills/engineering/tdd/tests.md       # → references/tests.md
+      - https://github.com/mattpocock/skills/blob/main/skills/engineering/tdd/mocking.md     # → references/mocking.md
+      - https://github.com/mattpocock/skills/blob/main/skills/engineering/tdd/refactoring.md # → references/refactoring.md
     status: active
     pinned_commit: TBD          # pin on first ios-skill-consolidate run
     last_synced: 2026-06-20
@@ -47,7 +51,10 @@ sources:
     note: >
       Source for the vertical-slice / tracer-bullet framing (horizontal slicing as the cardinal
       anti-pattern), "never refactor while RED", behavior-through-public-interface emphasis, and
-      the plan-the-behaviors / you-can't-test-everything planning step.
+      the plan-the-behaviors / you-can't-test-everything planning step. The three companion files
+      (tests/mocking/refactoring) were rewritten Swift-native into references/ — mocking.md keeps
+      the *decision* (boundaries + DI + SDK-style protocols) and defers the double taxonomy +
+      #if DEBUG fixture placement to ios-testing-expert §8 to avoid duplication.
 
 # ── Notes ──
 # Examples were rewritten Swift-native (Swift Testing #expect, Decimal, view-model-not-view).

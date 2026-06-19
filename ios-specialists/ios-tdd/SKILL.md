@@ -64,7 +64,7 @@ the output.**
 
 3. **REFACTOR — tidy with tests green, re-run after each step.** Extract duplication, deepen modules,
    improve names. **Never refactor while RED** — get to green first. Run the suite after every refactor
-   step to prove behavior is unchanged.
+   step to prove behavior is unchanged. (Candidates: [`references/refactoring.md`](references/refactoring.md).)
 
 ## Vertical slices, not horizontal — the cardinal anti-pattern
 **Do NOT write all the tests first, then all the implementation.** That "horizontal" split (RED = all
@@ -99,8 +99,8 @@ bug report → write reproduction test → RUN: fails (bug confirmed)
 ## Writing good tests (Swift)
 - **Test behavior through the public interface — not implementation.** Assert on the *outcome* (state),
   not which internal methods were called. A test that breaks when you rename a private helper, with
-  behavior unchanged, was testing the wrong thing. (For view-models: test the VM's published state, not
-  the SwiftUI view — see `ios-testing-expert §12`.)
+  behavior unchanged, was testing the wrong thing. (Good/bad examples: [`references/tests.md`](references/tests.md);
+  for view-models: test the VM's published state, not the SwiftUI view — see `ios-testing-expert §12`.)
   ```swift
   // Good — observable outcome
   #expect(sut.sortedByDateDescending.first?.createdAt > sut.sortedByDateDescending.last?.createdAt)
@@ -111,8 +111,9 @@ bug report → write reproduction test → RUN: fails (bug confirmed)
   fine if it makes the test independently understandable. Don't hide the inputs behind shared helpers.
 - **Prefer real implementations over doubles:** real > fake (in-memory) > stub > mock. Use a double only
   when the real thing is slow, non-deterministic, or has side effects you can't control (network, clock,
-  random). Over-mocking gives tests that pass while production breaks. (Double taxonomy + where to put
-  fixtures: `ios-testing-expert §8`.)
+  random). Over-mocking gives tests that pass while production breaks. (When/where to mock + design-for-
+  substitutability: [`references/mocking.md`](references/mocking.md); double taxonomy + fixture
+  placement: `ios-testing-expert §8`.)
 - **Arrange-Act-Assert** structure; **one concept per test** (`rejects empty title`, `trims whitespace`
   — not one `validates correctly`); **descriptive names** that read as a spec, via `@Test("…")`.
 - **Deterministic only** — no `Date()`/random in tests; inject a fixed clock/value.
@@ -164,3 +165,9 @@ code as reassurance (run after a *change*, not for comfort).
 [ ] Bug fix? a reproduction test failed before the fix
 [ ] Full suite run before claiming done — no regressions
 ```
+
+## References
+- [`references/tests.md`](references/tests.md) — good vs bad tests; behavior-through-the-interface examples.
+- [`references/mocking.md`](references/mocking.md) — when/where to mock (boundaries only) + design-for-substitutability (DI, SDK-style protocols).
+- [`references/refactoring.md`](references/refactoring.md) — refactor candidates for the REFACTOR step.
+- `ios-testing-expert` — framework mechanics: `#expect`/`#require`, traits, parameterized, doubles taxonomy, XCTest↔Swift Testing migration, parallelization/flakiness.
