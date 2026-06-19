@@ -86,7 +86,8 @@ Invoke `ios-scout {target}` (target = main component/feature from the ticket, or
 Write its map to `{plans_dir}/{slug}/scope.md`. Skip only for a truly trivial single-file change.
 
 ### Step 4 — Plan (+ approval gate)
-Invoke `ios-plan` for this task → writes `{plans_dir}/{slug}/plan.md` (phased, with a Testing
+Invoke `ios-plan` for this task (point it at the Step 3 `scope.md` so it reuses that map instead
+of re-scouting) → writes `{plans_dir}/{slug}/plan.md` (phased, with a Testing
 Strategy, a `complexity` field, and an Owner column on the File Changes table for team runs).
 **Read the plan's `complexity`** — it sets the auto dev count for Step 5.
 

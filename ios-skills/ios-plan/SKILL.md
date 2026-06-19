@@ -13,16 +13,20 @@ and phased documentation.
 
 **YAGNI + KISS + DRY.** Honest, brutal, concise.
 
+> **CORE PRINCIPLE — plan in VERTICAL SLICES, never horizontal layers.**
+> Every phase is ONE end-to-end feature (model → service → state → view → tests) that leaves the
+> app building & green. Not "all models, then all APIs, then all UI." This is the single most
+> important decision in the plan — it's derived in Step 4 and enforced in Constraints.
+
 ## Plan mode (MANDATORY)
-Do all research and design inside Claude Code **plan mode**. Enter plan mode **before** Step 0
-so nothing is written or mutated while planning — Phases 1–4 (profile, ticket, codebase
-analysis, solution design) are read-only. When the design is ready, call **`ExitPlanMode`**
-with the plan summary: this is the approval gate. Only **after** the user approves do you leave
-plan mode and write the plan files (Phase 5) + run the handoff (Phase 8). If the host cannot
-enter plan mode, state that explicitly and fall back to the Phase 8 soft gate.
+All research and design happen inside Claude Code **plan mode**. Enter it **before Step 0** —
+Steps 1–4 are read-only, so nothing is written or mutated while planning. When the design is
+ready, call **`ExitPlanMode`** (Step 5) with the plan summary: this is the approval gate. Only
+**after** the user approves do you leave plan mode and write files (Steps 6–7) + run the handoff
+(Step 8). If the host can't enter plan mode, say so, present the plan summary inline, and
+require explicit approval before writing anything.
 
 ## Step 0 — Load profile
-
 Read `.claude/ios-profile.md`: `architecture`, `state_type`, `di`, `navigation`,
 `networking`, `localization`, `accessibility_ids`, `feature_flags`, `verify_command`,
 `high_rigor_domains`, `plans_dir`, `source_roots`, `generated_paths`, `rules_file`,
@@ -42,22 +46,15 @@ backend schema change needing coordinated client work.
 | Need trade-off analysis | `ios-brainstorm` |
 | Just find files | `ios-scout` |
 
----
-
-## Argument Parsing
+## Arguments
 - **TICKET-ID** (matches `ticket_pattern`) → fetch via `ticket_fetch`.
 - **Free-form** → planning subject.
 - **Subcommands:** `archive`, `red-team`, `validate`.
-- **Mode flags:** `--fast`, `--hard`, `--two`, `--no-tasks`.
+- **Mode flags:** `--fast`, `--hard`, `--two`.
 
 If no args, ask via `AskUserQuestion` (default = create plan; or archive/red-team/validate).
 
-## Pre-Creation Scan
-Before a new plan, scan `{plans_dir}` for unfinished plans (`status != completed/cancelled`):
-read frontmatter, compare scope (overlapping files, shared DI keys, same feature), set
-`blockedBy`/`blocks` on BOTH plans when a dependency is found; `AskUserQuestion` if ambiguous.
-
-## Workflow Modes
+### Mode auto-detect
 | Flag | Research | Red Team | Validate |
 |---|---|---|---|
 | default (auto-detect) | per complexity | per complexity | per complexity |
@@ -65,62 +62,66 @@ read frontmatter, compare scope (overlapping files, shared DI keys, same feature
 | `--hard` | yes | yes | optional |
 | `--two` | 2 researchers | after selection | after selection |
 
-Auto-detect: trivial(1 file,<30 LoC)→`--fast`; single clear feature→default;
-cross-module / `high_rigor_domains`→`--hard`; real uncertainty between 2 approaches→`--two`.
+Auto-detect: trivial (1 file, <30 LoC) → `--fast`; single clear feature → default;
+cross-module / `high_rigor_domains` → `--hard`; real uncertainty between 2 approaches → `--two`.
 
 ---
 
-## Process Flow
-```
-0. Enter plan mode (MANDATORY) — read-only for steps 1–7
-1. Parse args
-2. Pre-creation scan ({plans_dir})
-3. Fetch ticket (ticket_fetch) if TICKET-ID
-4. Scope challenge (skip if --fast)
-5. Codebase analysis (ios-scout or Glob/Grep)
-6. (optional) Research (ios-research) for --hard / --two
-7. Solution design
-8. ExitPlanMode → present plan summary, APPROVAL GATE (nothing written before this)
-9. Write plan.md + per-phase files under {plans_dir}
-10. (optional) Red team → red-team.md
-11. (optional) Validate interview → validation.md
-12. Output execute handoff (do NOT auto-invoke)
-```
+## Flow
+`1` Context → `2` Codebase → `3` Research → `4` Design → **`5` ExitPlanMode (gate)** →
+`6` Write → `7` Red team/Validate → `8` Handoff. Steps 1–4 read-only; 6–7 write.
 
-## Phase 1 — Context
-Load `rules_file` + relevant `docs_root` files + existing brainstorm report for the same
-ticket. Fetch ticket via `ticket_fetch`. Scope challenge (skip if `--fast`/trivial): solving
-the problem or the symptom? sub-tasks deferrable? one plan or 2-3 sequential?
+### Step 1 — Context
+Parse args. **Pre-creation scan:** scan `{plans_dir}` for unfinished plans
+(`status != completed/cancelled`) — read frontmatter, compare scope (overlapping files,
+shared DI keys, same feature), set `blockedBy`/`blocks` on BOTH plans when a dependency is
+found; `AskUserQuestion` if ambiguous. Load `rules_file` + relevant `docs_root` files +
+existing brainstorm report for the same ticket. Fetch ticket via `ticket_fetch`. Scope
+challenge (skip if `--fast`/trivial): solving the problem or the symptom? sub-tasks
+deferrable? one plan or 2-3 sequential?
 
-## Phase 2 — Research (skip if `--fast`)
+### Step 2 — Codebase analysis
+**Reuse first (DRY):** if a scout map already exists for this task — e.g. `scope.md` in the
+working plan dir, written when `ios-resolve` ran `ios-scout` upstream — read it instead of
+re-scouting. Otherwise gather it now: scope spanning 3+ modules → `ios-scout`, else `Glob`/`Grep`.
+Capture per file to modify: `path:line` · existing pattern to follow (DRY) · test file + pattern ·
+DI keys touched · navigation closures touched · network operations touched (never edit
+`generated_paths`) · localization keys + accessibility ids needed.
+
+### Step 3 — Research (skip if `--fast`)
 `--hard`/`--two` → `ios-research <topic>`. Default → lightweight `WebSearch` only if truly
 needed. **Don't research patterns already in the codebase.**
 
-## Phase 3 — Codebase analysis
-If scope spans 3+ modules → `ios-scout`. Capture per file to modify:
-`path:line` · existing pattern to follow (DRY) · test file + pattern · DI keys touched ·
-navigation closures touched · network operations touched (never edit `generated_paths`) ·
-localization keys + accessibility ids needed.
-
-## Phase 4 — Solution design
+### Step 4 — Solution design
 Per approach: View / state ({state_type}) / navigation split · DI wiring ({di}) · network
 operation + cache strategy ({networking}) · feature flag (`feature_flags`) + default-off
 rollout · backwards-compat/migration · testing strategy (unit/snapshot/UI with accessibility
 ids) · rollback plan. `--two` → comparison table.
 
-## Phase 5 — Plan documentation (only AFTER `ExitPlanMode` approval)
-Reached only once the user approves the plan presented via `ExitPlanMode`; you are now out of
-plan mode, so writes are allowed.
+**Then derive the phase plan** (method adapted from `## Sources`):
+- **Slice vertically — this is the core of the plan.** Each phase is ONE end-to-end feature slice
+  (its model + service + state + view + tests) that leaves the app building and testable. NEVER
+  "all models, then all APIs, then all UI." Extract a thin shared foundation phase only for what
+  ≥2 slices genuinely need.
+- **Dependency graph → order the slices.** Map what depends on what; order bottom-up — typically
+  model/persistence → networking/service → DI wiring → state/store → view → tests. Foundation slice first.
+- **Checkpoint + fail-fast.** High-risk / uncertain slices first; every slice ends at a verification
+  checkpoint ({verify_command} green); any step touching >~5 files or rated XL must be split.
+
+### Step 5 — ExitPlanMode (approval gate)
+Present the plan summary via `ExitPlanMode`. Nothing is written before the user approves.
+
+### Step 6 — Plan documentation (only AFTER approval)
+Out of plan mode now; writes allowed.
 Dir: `{plans_dir}/{YYMMDD-HHMM}-{TICKET|slug}/` — `{YYMMDD-HHMM}` from
 `bash -c 'date +%y%m%d-%H%M'`. Create if missing.
 
 ```
 {plans_dir}/{date-ticket-slug}/
-├── plan.md                 # master plan + frontmatter
-├── phase-1-foundation.md   # only if 3+ phases
-├── phase-2-data.md
-├── phase-3-ui.md
-└── phase-4-tests.md
+├── plan.md                    # master plan + frontmatter
+├── phase-1-foundation.md      # thin shared scaffolding — only if ≥2 slices need it
+├── phase-2-{slice-a}.md       # vertical slice: model→service→state→view→tests
+└── phase-3-{slice-b}.md       # next slice; one phase per end-to-end slice
 ```
 
 `plan.md` frontmatter:
@@ -140,9 +141,9 @@ created: <YYYY-MM-DD>
 `plan.md` body:
 ```markdown
 ## Overview            <2-4 sentences>
-## Acceptance Criteria
+## Acceptance Criteria   <feature-level; every AC must map to ≥1 slice's per-phase Acceptance criteria>
 ## Approach            <chosen + rationale; link brainstorm report if any>
-## Phases              1. Foundation 2. Data 3. UI 4. Tests
+## Phases              one vertical slice per phase, in dependency order (see Step 4)
 ## File Changes (Summary Table)  | File | Module | Type | Change | Owner |
        # Owner = dev-1/dev-2/dev-3 for team runs (one owner per file → clean merges); "-" for solo
 ## Feature Flag        Name / Default off / Rollout  (or "n/a" if feature_flags==none)
@@ -154,30 +155,37 @@ created: <YYYY-MM-DD>
 
 Per-phase file:
 ```markdown
-## Phase N: <name>
-### Goal           <1-2 sentences>
+## Phase N: <slice name>          # one vertical slice, end-to-end
+### Goal           <1-2 sentences — the user-visible capability this slice delivers>
+### Acceptance criteria           # this slice's share of the plan's ACs — specific & testable
+- [ ] <testable condition>
+- [ ] <testable condition>
 ### Steps
-1. **<Step>** (file: `<path>:<line>`) — what to change · why · test to add/update
-### Verification
-- Run `{verify_command}`  (if unset → build-only; state it)
-- Manual: <if applicable>
-### Estimated Effort   S / M / L
+1. **<Step>** (file: `<path>:<line>`, size: XS/S/M/L) — what to change · why · test to add/update
+       # no step > ~5 files; an XL step must be split into smaller steps
+### Checkpoint        # all boxes green before the next slice starts
+- [ ] `{verify_command}` passes  (if unset → build-only; state it)
+- [ ] Acceptance criteria above all met
+- [ ] Manual: <if applicable>
+### Depends on        Phase <N>, … | none
 ```
+(Files & owners live in `plan.md`'s File Changes table; per-step `size` covers scope — don't
+restate them here.)
 
-## Phase 6 — Red Team (`--hard`/`--two` or subcommand)
-`ios-plan red-team <plan-dir>` — spawn an adversarial reviewer:
+### Step 7 — Red team / Validate (optional)
+**Red team** (`--hard`/`--two` or subcommand) — `ios-plan red-team <plan-dir>` spawns an
+adversarial reviewer:
 > Review this plan as a hostile reviewer. Find missing edge cases, unstated assumptions,
 > security gaps, state-transition holes, DI lifecycle issues, networking/cache pitfalls,
 > rollback risks, accessibility gaps. Be brutal.
 
 Save to `{plans_dir}/{plan-dir}/red-team.md`; update the plan before proceeding.
 
-## Phase 7 — Validation interview (optional)
-`ios-plan validate <plan-dir>` — `AskUserQuestion`: ACs mapped to phases? feature flag
-confirmed with PM? backend schema timing confirmed? design signed off? localization strings
-provided? accessibility ids reviewed? QA bandwidth? Save to `validation.md`.
+**Validate** (optional) — `ios-plan validate <plan-dir>` via `AskUserQuestion`: ACs mapped to
+phases? feature flag confirmed with PM? backend schema timing confirmed? design signed off?
+localization strings provided? accessibility ids reviewed? QA bandwidth? Save to `validation.md`.
 
-## Phase 8 — Execute handoff (do NOT auto-invoke)
+### Step 8 — Execute handoff (do NOT auto-invoke)
 ```
 Plan ready: {plans_dir}/{plan-dir}/plan.md
 - Implement now            → ios-execute {plans_dir}/{plan-dir}/plan.md
@@ -186,20 +194,40 @@ Plan ready: {plans_dir}/{plan-dir}/plan.md
 ```
 (When `ios-resolve` drives the flow, it runs this handoff for you.)
 
+---
+
 ## Subcommands
 - **archive** — move `status: completed|cancelled` plans → `{plans_dir}/_archive/{YYMM}/`, append journal.
-- **red-team / validate** — standalone Phase 6 / 7.
+- **red-team / validate** — standalone Step 7.
 
 ## Greenfield note
 First 1-2 features have no prior art — the plan **establishes** the pattern. Relax the
 "match existing pattern" DRY checks; be extra explicit about the conventions being set
 (they become what later plans DRY against).
 
+## Related skills
+`ios-project-init` (profile bootstrap) · `ios-scout` (codebase analysis, Step 2) ·
+`ios-research` (Step 3) · `ios-brainstorm` (trade-off analysis, upstream) ·
+`ios-sequential-thinking` (hard reasoning aid) · `ios-execute` (implements the plan, Step 8) ·
+`ios-code-review` (review gate, inside `ios-execute`) · `ios-resolve` (end-to-end front door
+that drives this skill).
+
+## Sources
+Planning methodology adapted from:
+- [planning-and-task-breakdown](https://github.com/addyosmani/agent-skills/blob/main/skills/planning-and-task-breakdown/SKILL.md)
+  — dependency-graph build order, vertical slicing, per-task sizing (XL→split), checkpoint cadence,
+  and per-slice acceptance criteria.
+
+Tracked in `SOURCES.yaml` (`mode: audit-only`): `ios-skill-consolidate` flags staleness / surfaces
+newer sources, but this skill is hand-curated — adaptation is never auto-merged.
+
 ## Constraints
 - **DO NOT** implement — plans only. **DO NOT** auto-invoke `ios-execute`.
-- **MUST** plan inside plan mode: Phases 1–4 read-only, then `ExitPlanMode` as the approval
-  gate before any plan file is written. If the host can't enter plan mode, say so and fall back
-  to the Phase 8 gate.
+- **MUST** phase as vertical slices in dependency order — never horizontal layers
+  (no "all models → all APIs → all UI"); each slice must leave the app building & green.
+- **MUST** plan inside plan mode: Steps 1–4 read-only, then `ExitPlanMode` (Step 5) as the
+  approval gate before any plan file is written. If the host can't enter plan mode, say so,
+  present the summary inline, and require explicit approval before writing.
 - **DO NOT** create plans outside `{plans_dir}`. **MUST** follow `rules_file`.
-- **MUST** include `{verify_command}` in each phase's Verification (or note build-only).
+- **MUST** include `{verify_command}` in each phase's Checkpoint (or note build-only).
 - **Sacrifice grammar for concision.**
