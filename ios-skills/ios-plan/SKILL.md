@@ -13,6 +13,11 @@ and phased documentation.
 
 **YAGNI + KISS + DRY.** Honest, brutal, concise.
 
+> **CORE PRINCIPLE — plan in VERTICAL SLICES, never horizontal layers.**
+> Every phase is ONE end-to-end feature (model → service → state → view → tests) that leaves the
+> app building & green. Not "all models, then all APIs, then all UI." This is the single most
+> important decision in the plan — it's derived in Step 4 and enforced in Constraints.
+
 ## Plan mode (MANDATORY)
 All research and design happen inside Claude Code **plan mode**. Enter it **before Step 0** —
 Steps 1–4 are read-only, so nothing is written or mutated while planning. When the design is
@@ -93,16 +98,15 @@ operation + cache strategy ({networking}) · feature flag (`feature_flags`) + de
 rollout · backwards-compat/migration · testing strategy (unit/snapshot/UI with accessibility
 ids) · rollback plan. `--two` → comparison table.
 
-**Then derive the phase plan** (see `## Sources`):
-- **Dependency graph → build order.** Map what depends on what; order bottom-up — typically
-  model/persistence → networking/service → DI wiring → state/store → view → tests. Foundations first.
-- **Slice vertically, not horizontally.** Each phase is ONE end-to-end feature slice (its
-  model + service + state + view + tests) that leaves the app building and testable. Never
-  "all models, then all APIs, then all UI." Extract a thin shared foundation phase only for
-  what ≥2 slices need.
-- **Order + checkpoint.** High-risk / uncertain slices first (fail-fast); every slice ends at a
-  verification checkpoint ({verify_command} green); any step touching >~5 files or rated XL must
-  be split.
+**Then derive the phase plan** (method adapted from `## Sources`):
+- **Slice vertically — this is the core of the plan.** Each phase is ONE end-to-end feature slice
+  (its model + service + state + view + tests) that leaves the app building and testable. NEVER
+  "all models, then all APIs, then all UI." Extract a thin shared foundation phase only for what
+  ≥2 slices genuinely need.
+- **Dependency graph → order the slices.** Map what depends on what; order bottom-up — typically
+  model/persistence → networking/service → DI wiring → state/store → view → tests. Foundation slice first.
+- **Checkpoint + fail-fast.** High-risk / uncertain slices first; every slice ends at a verification
+  checkpoint ({verify_command} green); any step touching >~5 files or rated XL must be split.
 
 ### Step 5 — ExitPlanMode (approval gate)
 Present the plan summary via `ExitPlanMode`. Nothing is written before the user approves.
@@ -139,7 +143,7 @@ created: <YYYY-MM-DD>
 ## Overview            <2-4 sentences>
 ## Acceptance Criteria
 ## Approach            <chosen + rationale; link brainstorm report if any>
-## Phases              vertical feature slices in dependency order (shared foundation first only if ≥2 slices need it); each slice end-to-end + tested
+## Phases              one vertical slice per phase, in dependency order (see Step 4)
 ## File Changes (Summary Table)  | File | Module | Type | Change | Owner |
        # Owner = dev-1/dev-2/dev-3 for team runs (one owner per file → clean merges); "-" for solo
 ## Feature Flag        Name / Default off / Rollout  (or "n/a" if feature_flags==none)
@@ -159,7 +163,6 @@ Per-phase file:
 ### Checkpoint        # app builds & tests green before the next slice starts
 - Run `{verify_command}`  (if unset → build-only; state it)
 - Manual: <if applicable>
-### Estimated Effort   S / M / L
 ```
 
 ### Step 7 — Red team / Validate (optional)
@@ -215,5 +218,5 @@ Planning methodology adapted from:
   approval gate before any plan file is written. If the host can't enter plan mode, say so,
   present the summary inline, and require explicit approval before writing.
 - **DO NOT** create plans outside `{plans_dir}`. **MUST** follow `rules_file`.
-- **MUST** include `{verify_command}` in each phase's Verification (or note build-only).
+- **MUST** include `{verify_command}` in each phase's Checkpoint (or note build-only).
 - **Sacrifice grammar for concision.**
