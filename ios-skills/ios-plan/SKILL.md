@@ -93,6 +93,17 @@ operation + cache strategy ({networking}) · feature flag (`feature_flags`) + de
 rollout · backwards-compat/migration · testing strategy (unit/snapshot/UI with accessibility
 ids) · rollback plan. `--two` → comparison table.
 
+**Then derive the phase plan** (see `## Sources`):
+- **Dependency graph → build order.** Map what depends on what; order bottom-up — typically
+  model/persistence → networking/service → DI wiring → state/store → view → tests. Foundations first.
+- **Slice vertically, not horizontally.** Each phase is ONE end-to-end feature slice (its
+  model + service + state + view + tests) that leaves the app building and testable. Never
+  "all models, then all APIs, then all UI." Extract a thin shared foundation phase only for
+  what ≥2 slices need.
+- **Order + checkpoint.** High-risk / uncertain slices first (fail-fast); every slice ends at a
+  verification checkpoint ({verify_command} green); any step touching >~5 files or rated XL must
+  be split.
+
 ### Step 5 — ExitPlanMode (approval gate)
 Present the plan summary via `ExitPlanMode`. Nothing is written before the user approves.
 
@@ -103,11 +114,10 @@ Dir: `{plans_dir}/{YYMMDD-HHMM}-{TICKET|slug}/` — `{YYMMDD-HHMM}` from
 
 ```
 {plans_dir}/{date-ticket-slug}/
-├── plan.md                 # master plan + frontmatter
-├── phase-1-foundation.md   # only if 3+ phases
-├── phase-2-data.md
-├── phase-3-ui.md
-└── phase-4-tests.md
+├── plan.md                    # master plan + frontmatter
+├── phase-1-foundation.md      # thin shared scaffolding — only if ≥2 slices need it
+├── phase-2-{slice-a}.md       # vertical slice: model→service→state→view→tests
+└── phase-3-{slice-b}.md       # next slice; one phase per end-to-end slice
 ```
 
 `plan.md` frontmatter:
@@ -129,7 +139,7 @@ created: <YYYY-MM-DD>
 ## Overview            <2-4 sentences>
 ## Acceptance Criteria
 ## Approach            <chosen + rationale; link brainstorm report if any>
-## Phases              1. Foundation 2. Data 3. UI 4. Tests
+## Phases              vertical feature slices in dependency order (shared foundation first only if ≥2 slices need it); each slice end-to-end + tested
 ## File Changes (Summary Table)  | File | Module | Type | Change | Owner |
        # Owner = dev-1/dev-2/dev-3 for team runs (one owner per file → clean merges); "-" for solo
 ## Feature Flag        Name / Default off / Rollout  (or "n/a" if feature_flags==none)
@@ -141,11 +151,12 @@ created: <YYYY-MM-DD>
 
 Per-phase file:
 ```markdown
-## Phase N: <name>
-### Goal           <1-2 sentences>
+## Phase N: <slice name>          # one vertical slice, end-to-end
+### Goal           <1-2 sentences — the user-visible capability this slice delivers>
 ### Steps
-1. **<Step>** (file: `<path>:<line>`) — what to change · why · test to add/update
-### Verification
+1. **<Step>** (file: `<path>:<line>`, size: XS/S/M/L) — what to change · why · test to add/update
+       # no step > ~5 files; an XL step must be split into smaller steps
+### Checkpoint        # app builds & tests green before the next slice starts
 - Run `{verify_command}`  (if unset → build-only; state it)
 - Manual: <if applicable>
 ### Estimated Effort   S / M / L
@@ -191,8 +202,15 @@ First 1-2 features have no prior art — the plan **establishes** the pattern. R
 `ios-code-review` (review gate, inside `ios-execute`) · `ios-resolve` (end-to-end front door
 that drives this skill).
 
+## Sources
+Planning methodology adapted from:
+- [planning-and-task-breakdown](https://github.com/addyosmani/agent-skills/blob/main/skills/planning-and-task-breakdown/SKILL.md)
+  — dependency-graph build order, vertical slicing, per-task sizing (XL→split), and checkpoint cadence.
+
 ## Constraints
 - **DO NOT** implement — plans only. **DO NOT** auto-invoke `ios-execute`.
+- **MUST** phase as vertical slices in dependency order — never horizontal layers
+  (no "all models → all APIs → all UI"); each slice must leave the app building & green.
 - **MUST** plan inside plan mode: Steps 1–4 read-only, then `ExitPlanMode` (Step 5) as the
   approval gate before any plan file is written. If the host can't enter plan mode, say so,
   present the summary inline, and require explicit approval before writing.
