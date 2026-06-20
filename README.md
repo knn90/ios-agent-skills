@@ -8,11 +8,11 @@ every project-specific fact lives in the profile and is read at runtime.
 ```
 ios-project-init ──→ .claude/ios-profile.md            # run ONCE per project
 
-ios-resolve  ── one command: ticket/context → scout → plan → execute → review → PR
+ios-resolve  ── one command: ticket/context → scout → plan → grill → execute → review → PR
       │
       ├─ ios-scout ────────┐
       ├─ ios-research ──────┤
-      ├─ ios-brainstorm ────┼─→ ios-plan ─→ ios-execute ─→ ios-code-review
+      ├─ ios-brainstorm ────┼─→ ios-plan ─→ ios-grill ─→ ios-execute ─→ ios-code-review
       └─ ios-sequential-thinking  (reasoning aid; plugs in anywhere)
                                           │ apply           │ route
                                           └─── ios-specialists ───┘
@@ -67,10 +67,13 @@ ios-resolve ABC-123 --solo --no-pr    # single agent, stop before the PR
 `ios-resolve` is the front door. It runs:
 
 ```
-fetch ticket/context → create branch → ios-scout → ios-plan ──(you approve)──►
+fetch ticket/context → create branch → ios-scout → ios-plan → ios-grill (harden) ──(you approve)──►
     ios-execute (TDD; solo or --team N) → ios-code-review → /commit → open PR
 ```
 
+`ios-grill` interrogates the plan's open decisions one at a time (each with a recommended answer,
+codebase checked first) and folds your answers back in — so you approve a **hardened** plan, not a
+plan full of unstated assumptions. It auto-skips when the plan is already unambiguous.
 You approve the plan **before** any code is written, and nothing is pushed without you.
 
 ### Or à la carte
@@ -82,6 +85,7 @@ ios-scout OrderListViewModel            # where does this live?
 ios-research "offline sync options"     # sourced technical research
 ios-brainstorm "offline support"        # brutal trade-off analysis → decision report
 ios-plan ABC-123                        # phased plan (you approve)
+ios-grill <plan-dir>                    # stress-test a plan: grill open decisions, harden it
 ios-execute <plan-path> --team 2        # implement (TDD; parallel worktree team)
 ios-code-review #42                     # adversarial, multi-lens review of a PR
 ```
@@ -99,6 +103,7 @@ ios-code-review #42                     # adversarial, multi-lens review of a PR
 | `ios-brainstorm` | Brutally honest trade-off analysis → decision report. |
 | `ios-sequential-thinking` | Step-by-step reasoning aid; plugs in anywhere. |
 | `ios-plan` | Phased implementation plan, with an approval gate. |
+| `ios-grill` | Stress-tests the plan **before** approval: interrogates open decisions one at a time (recommended answer each, codebase checked first), folds answers back into `plan.md`. Auto-skips when the plan is unambiguous. |
 | `ios-execute` | **The only implementer.** plan → code → verify → review. **TDD always**; solo, or `--team N` (parallel worktree devs + peer review + a dedicated edge-case reviewer + merge). |
 | `ios-code-review` | Multi-lens adversarial review; **routes change-typed slices to the specialists**; precision-over-recall findings. |
 
@@ -133,7 +138,7 @@ ios-agent-skills/
 │   └── marketplace.json         #   self-marketplace listing the plugin
 ├── README.md
 ├── ios-profile.template.md      # copy to <project>/.claude/ios-profile.md and fill in
-├── ios-skills/                  # core workflow (9 skills)        — shipped by the plugin
+├── ios-skills/                  # core workflow (10 skills)       — shipped by the plugin
 ├── ios-specialists/             # optional specialist reviewers   — shipped by the plugin
 ├── ios-skill-consolidate/       # repo-maintenance (rebuilds skills from sources) — NOT shipped
 └── docs/                        # design notes

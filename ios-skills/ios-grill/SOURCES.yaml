@@ -1,0 +1,49 @@
+# Provenance + freshness tracking for the ios-grill skill.
+# Maintained by ios-skill-consolidate — do not hand-edit pinned_commit / last_synced.
+# NOTE: ios-grill is a WORKFLOW skill (bespoke orchestration, NOT synthesized domain knowledge).
+# It is AUDIT-ONLY: the consolidator runs source staleness + discovery (Step 1) and surfaces
+# new/dead sources as a PR, but NEVER auto-merges content into SKILL.md. A human adapts the
+# ideas by hand (selectively), the way the current methodology was adopted.
+
+skill: ios-grill
+domain: plan stress-testing (interactive decision interrogation to harden an implementation plan)
+mode: audit-only          # discovery + staleness only; synthesis is SKIPPED
+last_consolidated: n/a    # never auto-synthesized — this skill is hand-curated
+
+discovery:
+  enabled: true
+  queries:
+    - "grill me agent skill plan review"
+    - "interview me agent skill clarify intent"
+    - "stress test plan assumptions agent skill"
+    - "one question at a time clarifying agent skill"
+  authority_anchors:
+    - "the consuming project's rules_file (per .claude/ios-profile.md)"
+    - "Apple Developer documentation (where a decision is an iOS-platform question)"
+
+sources:
+  - name: mattpocock/skills — grill-me
+    url: https://github.com/mattpocock/skills
+    path: skills/productivity/grill-me/
+    status: active
+    pinned_commit: 733d312884b3878a9a9cff693c5886943753a741   # the ref the methodology was adapted from
+    last_synced: 2026-06-20
+    license: TBD              # verify; cite-only until confirmed
+    cite_only: true           # methodology reference — ideas adapted by hand, never vendored
+    note: >
+      Source of the decision-tree walkthrough, one-question-at-a-time delivery with a recommended
+      answer per question, and the codebase-first delegation rule (check the code before asking).
+      Adapted to operate on ios-plan's plan.md and to write a grill.md decisions log.
+  - name: addyosmani/agent-skills — interview-me
+    url: https://github.com/addyosmani/agent-skills
+    path: skills/interview-me/
+    status: active
+    pinned_commit: TBD        # set on first audit run
+    last_synced: 2026-06-20
+    license: TBD              # verify; cite-only until confirmed
+    cite_only: true           # methodology reference — ideas adapted by hand, never vendored
+    note: >
+      Source of the 0–100% confidence gating (drives the auto-skip), hypothesis-per-question,
+      "should-want" signal detection, and the predict-the-next-three-answers stop condition.
+      The full intent-clarification framing was NOT adopted — ios-grill targets an existing plan,
+      not a from-scratch request (intent clarification lives upstream in ios-brainstorm/ios-plan).
