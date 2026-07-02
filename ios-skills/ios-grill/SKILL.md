@@ -20,7 +20,10 @@ manufacture questions to look thorough.
 
 Read `.claude/ios-profile.md`: `architecture`, `state_type`, `di`, `navigation`, `networking`,
 `localization`, `accessibility_ids`, `feature_flags`, `verify_command`, `high_rigor_domains`,
-`plans_dir`, `rules_file`, ticket fields. If missing → run `ios-project-init`.
+`plans_dir`, `rules_file`, ticket fields. If missing, read the main checkout's copy —
+`$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it). Still missing →
+run `ios-project-init`.
 
 ## What this is (and is NOT)
 

@@ -17,7 +17,10 @@ trade-offs, and over-engineering.
 
 Read `.claude/ios-profile.md`: `architecture`, `state_type`, `di`, `navigation`,
 `networking`, `localization`, `accessibility_ids`, `feature_flags`, `high_rigor_domains`,
-`reports_dir`, `rules_file`, ticket fields. If missing → run `ios-project-init`.
+`reports_dir`, `rules_file`, ticket fields. If missing, read the main checkout's copy —
+`$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it). Still missing →
+run `ios-project-init`.
 
 ## Critical Constraints
 

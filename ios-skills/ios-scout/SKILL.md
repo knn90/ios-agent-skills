@@ -13,8 +13,10 @@ Find things fast using parallel `Explore` subagents. Output is a **map**, not an
 ## Step 0 — Load profile
 
 Read `.claude/ios-profile.md` for `source_roots`, `test_roots`, `generated_paths`,
-`ui_framework`, `navigation`, `networking`. If absent → tell the user to run
-`ios-project-init` first (greenfield repos have nothing to scout).
+`ui_framework`, `navigation`, `networking`. If absent, read the main checkout's copy —
+`$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it). Still absent → tell the
+user to run `ios-project-init` first (greenfield repos have nothing to scout).
 
 ## When to Use
 

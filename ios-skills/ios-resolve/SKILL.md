@@ -17,7 +17,10 @@ every fact comes from `.claude/ios-profile.md`.
 Read `.claude/ios-profile.md`: `source_roots`, `test_roots`, `plans_dir`, `rules_file`,
 `verify_command`, `high_rigor_domains`, `architecture`, `feature_flags`,
 `ticket_system`, `ticket_pattern`, `ticket_fetch`, `default_base_branch`, `pr_tool`.
-If missing → run `ios-project-init` first. If `source_roots` is empty (greenfield, nothing to
+If missing, read the main checkout's copy —
+`$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it). Still missing →
+run `ios-project-init` first. If `source_roots` is empty (greenfield, nothing to
 scout/implement against) → tell the user to bootstrap the app first.
 
 ## When to Use / NOT

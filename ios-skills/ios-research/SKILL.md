@@ -16,7 +16,9 @@ doesn't use unless you can show the existing pattern is genuinely insufficient.
 ## Step 0 — Load profile
 
 Read `.claude/ios-profile.md`: `min_ios`, `architecture`, `networking`, `ui_framework`,
-`reports_dir`, `ticket_system`/`ticket_pattern`/`ticket_fetch`. If missing → run
+`reports_dir`, `ticket_system`/`ticket_pattern`/`ticket_fetch`. If missing, read the main
+checkout's copy — `$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it). Still missing → run
 `ios-project-init`.
 
 ## When to Use

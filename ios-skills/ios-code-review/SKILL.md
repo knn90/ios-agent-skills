@@ -21,7 +21,9 @@ of real, high-confidence findings beats a wall of nits.
 ## Step 0 — Load profile
 Read `.claude/ios-profile.md`: `architecture`, `state_type`, `di`, `navigation`, `networking`,
 `localization`, `accessibility_ids`, `crash_reporting`, `verify_command`, `high_rigor_domains`,
-`generated_paths`, **`specialists`**, `rules_file`, `test_roots`. Missing → run `ios-project-init`.
+`generated_paths`, **`specialists`**, `rules_file`, `test_roots`. If missing, read the main
+checkout's copy — `$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it). Still missing → run `ios-project-init`.
 
 ---
 

@@ -30,7 +30,10 @@ require explicit approval before writing anything.
 Read `.claude/ios-profile.md`: `architecture`, `state_type`, `di`, `navigation`,
 `networking`, `localization`, `accessibility_ids`, `feature_flags`, `verify_command`,
 `high_rigor_domains`, `plans_dir`, `source_roots`, `generated_paths`, `rules_file`,
-ticket fields. If missing → run `ios-project-init`.
+ticket fields. If missing, read the main checkout's copy —
+`$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it). Still missing →
+run `ios-project-init`.
 
 Plans touching `high_rigor_domains` must address security, rollback safety, feature-flag
 rollout (if `feature_flags` != none), and analytics impact.
