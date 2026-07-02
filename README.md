@@ -129,6 +129,10 @@ Rebuilds any specialist (or a core skill like `ios-code-review`) from its `SOURC
 `high_rigor_domains`, `specialists`, `ticket_fetch`, `default_base_branch`, `pr_tool`, … Every skill
 reads it first, so the skill bodies stay generic. Start from `ios-profile.template.md`.
 
+The profile is usually **gitignored**, so git worktrees don't inherit it. Every skill falls
+back to the main checkout's copy via
+`$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`.
+
 ## Layout
 
 ```

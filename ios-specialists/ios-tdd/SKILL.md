@@ -21,6 +21,9 @@ all live in **`ios-testing-expert`**. Use them together: this decides *when/why*
 
 ## Step 0 — Load profile
 Read `.claude/ios-profile.md`: `verify_command` (how to run the suite), `test_roots`, `source_roots`.
+If missing, read the main checkout's copy —
+`$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it).
 You will **run** tests here, not just write them — know the command before you start. If
 `verify_command` is unset, find the targeted run (e.g. `xcodebuild test -only-testing:{Target}/{Suite}`
 or `swift test --filter {Name}`) so you can observe one test going red then green without the full suite.

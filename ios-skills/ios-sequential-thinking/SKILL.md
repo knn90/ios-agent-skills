@@ -11,6 +11,9 @@ Structured problem-solving via reflective thought sequences with dynamic adjustm
 ## Step 0 — Load profile (light)
 Skim `.claude/ios-profile.md` for `architecture`, `state_type`, `navigation`,
 `networking`, `high_rigor_domains` so the patterns below map onto this app's vocabulary.
+If missing, skim the main checkout's copy —
+`$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it).
 
 ## When to Apply
 At least one of:

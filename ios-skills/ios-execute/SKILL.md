@@ -17,7 +17,10 @@ Solo by default; scales to a parallel dev team in isolated worktrees with `--tea
 Read `.claude/ios-profile.md`: `architecture`, `state_type`, `di`, `navigation`,
 `networking`, `localization`, `accessibility_ids`, `feature_flags`, `crash_reporting`,
 `verify_command`, `high_rigor_domains`, `generated_paths`, `plans_dir`, `rules_file`,
-ticket fields. If missing → run `ios-project-init`.
+ticket fields. If missing, read the main checkout's copy —
+`$(git rev-parse --path-format=absolute --git-common-dir)/../.claude/ios-profile.md`
+(the profile is usually gitignored, so worktrees don't inherit it). Still missing →
+run `ios-project-init`.
 
 ## When to Use
 Before writing **any** implementation code (feature, fix, refactor); translating an
